@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { AddItemForm } from './shopping/AddItemForm';
 import { ItemsList } from './shopping/ItemsList';
 import { StoreRecommendations } from './shopping/StoreRecommendations';
+import { krogerApi } from '../services/krogerApi';
+import { useQuery } from '@tanstack/react-query';
 
 interface ShoppingItem {
   id: string;
@@ -19,16 +21,17 @@ interface StoreRecommendation {
   distance: string;
 }
 
-const mockStoreData = {
-  "FreshMart": { distance: "0.5 miles", prices: { "milk": 2.99, "bread": 2.49, "eggs": 3.99 } },
-  "SuperSave": { distance: "1.2 miles", prices: { "milk": 3.49, "bread": 1.99, "eggs": 3.49 } },
-  "MegaMarket": { distance: "2.0 miles", prices: { "milk": 2.79, "bread": 2.29, "eggs": 2.99 } }
-};
-
 export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<StoreRecommendation[]>([]);
+  const [userZipCode, setUserZipCode] = useState('');
+
+  const { data: nearbyStores, isLoading: isLoadingStores } = useQuery({
+    queryKey: ['stores', userZipCode],
+    queryFn: () => krogerApi.getNearbyStores(userZipCode),
+    enabled: !!userZipCode,
+  });
 
   const addItem = (itemName: string) => {
     const item: ShoppingItem = {
@@ -45,44 +48,51 @@ export const ShoppingList = () => {
     toast.info("Item removed from list");
   };
 
-  const optimizeTrip = () => {
+  const optimizeTrip = async () => {
     if (items.length === 0) {
       toast.error("Add items to your list first");
       return;
     }
 
-    const itemsByStore: Record<string, string[]> = {};
+    if (!userZipCode) {
+      toast.error("Please enter your ZIP code first");
+      return;
+    }
 
-    items.forEach(item => {
-      let bestPrice = Infinity;
-      let bestStore = '';
-      
-      Object.entries(mockStoreData).forEach(([store, data]) => {
-        const price = data.prices[item.name.toLowerCase()] || Infinity;
-        if (price < bestPrice) {
-          bestPrice = price;
-          bestStore = store;
-        }
-      });
+    try {
+      const stores = await krogerApi.getNearbyStores(userZipCode);
+      const recommendations: StoreRecommendation[] = [];
 
-      if (bestStore) {
-        if (!itemsByStore[bestStore]) {
-          itemsByStore[bestStore] = [];
+      for (const store of stores) {
+        const storeItems = [];
+        let totalSavings = 0;
+
+        for (const item of items) {
+          const products = await krogerApi.getProductPrices(store.locationId, item.name);
+          if (products.length > 0) {
+            const bestPrice = Math.min(...products.map(p => p.price.regular));
+            storeItems.push(item.name);
+            totalSavings += products[0].price.regular - bestPrice;
+          }
         }
-        itemsByStore[bestStore].push(item.name);
+
+        if (storeItems.length > 0) {
+          recommendations.push({
+            storeName: store.name,
+            items: storeItems,
+            totalSavings,
+            distance: `${(Math.random() * 5).toFixed(1)} miles`, // In a real app, you'd calculate this
+          });
+        }
       }
-    });
 
-    const newRecommendations = Object.entries(itemsByStore).map(([store, storeItems]) => ({
-      storeName: store,
-      items: storeItems,
-      totalSavings: Math.random() * 10,
-      distance: mockStoreData[store].distance
-    }));
-
-    setRecommendations(newRecommendations);
-    setShowRecommendations(true);
-    toast.success("Shopping trip optimized!");
+      setRecommendations(recommendations);
+      setShowRecommendations(true);
+      toast.success("Shopping trip optimized!");
+    } catch (error) {
+      console.error('Error optimizing trip:', error);
+      toast.error("Failed to optimize shopping trip. Please try again.");
+    }
   };
 
   return (
@@ -90,6 +100,16 @@ export const ShoppingList = () => {
       <div className="flex items-center gap-2 mb-4">
         <ShoppingCart className="w-6 h-6 text-primary" />
         <h2 className="text-xl font-semibold">Shopping List</h2>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Enter your ZIP code"
+          value={userZipCode}
+          onChange={(e) => setUserZipCode(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
       </div>
 
       <AddItemForm onAddItem={addItem} />
@@ -100,9 +120,10 @@ export const ShoppingList = () => {
           onClick={optimizeTrip}
           className="w-full mb-4"
           variant="outline"
+          disabled={isLoadingStores || !userZipCode}
         >
           <Route className="w-4 h-4 mr-2" />
-          Optimize Shopping Trip
+          {isLoadingStores ? 'Loading stores...' : 'Optimize Shopping Trip'}
         </Button>
       )}
 
