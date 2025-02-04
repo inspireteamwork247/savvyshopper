@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, X, ShoppingCart, Route } from 'lucide-react';
+import { Route, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { AddItemForm } from './shopping/AddItemForm';
+import { ItemsList } from './shopping/ItemsList';
+import { StoreRecommendations } from './shopping/StoreRecommendations';
 
 interface ShoppingItem {
   id: string;
@@ -26,23 +27,16 @@ const mockStoreData = {
 
 export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [newItem, setNewItem] = useState('');
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<StoreRecommendation[]>([]);
 
-  const addItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItem.trim()) {
-      toast.error("Please enter an item name");
-      return;
-    }
+  const addItem = (itemName: string) => {
     const item: ShoppingItem = {
       id: Date.now().toString(),
-      name: newItem.trim().toLowerCase(),
+      name: itemName.toLowerCase(),
       quantity: 1,
     };
     setItems([...items, item]);
-    setNewItem('');
     toast.success("Item added to list");
   };
 
@@ -59,7 +53,6 @@ export const ShoppingList = () => {
 
     const itemsByStore: Record<string, string[]> = {};
 
-    // Simple optimization algorithm (mock data)
     items.forEach(item => {
       let bestPrice = Infinity;
       let bestStore = '';
@@ -80,11 +73,10 @@ export const ShoppingList = () => {
       }
     });
 
-    // Convert to recommendations
     const newRecommendations = Object.entries(itemsByStore).map(([store, storeItems]) => ({
       storeName: store,
       items: storeItems,
-      totalSavings: Math.random() * 10, // Mock savings calculation
+      totalSavings: Math.random() * 10,
       distance: mockStoreData[store].distance
     }));
 
@@ -100,35 +92,8 @@ export const ShoppingList = () => {
         <h2 className="text-xl font-semibold">Shopping List</h2>
       </div>
 
-      <form onSubmit={addItem} className="flex gap-2 mb-4">
-        <Input
-          type="text"
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          placeholder="Add an item..."
-          className="flex-1"
-        />
-        <Button type="submit" size="icon">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </form>
-
-      <ul className="space-y-2 mb-4">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className="flex items-center justify-between p-2 bg-gray-50 rounded animate-slideIn"
-          >
-            <span>{item.name}</span>
-            <button
-              onClick={() => removeItem(item.id)}
-              className="text-gray-400 hover:text-red-500 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </li>
-        ))}
-      </ul>
+      <AddItemForm onAddItem={addItem} />
+      <ItemsList items={items} onRemoveItem={removeItem} />
 
       {items.length > 0 && (
         <Button 
@@ -142,25 +107,7 @@ export const ShoppingList = () => {
       )}
 
       {showRecommendations && recommendations.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="font-medium text-lg">Recommended Stores</h3>
-          {recommendations.map((rec, index) => (
-            <Card key={index} className="animate-slideIn">
-              <CardContent className="pt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{rec.storeName}</span>
-                  <span className="text-sm text-gray-500">{rec.distance}</span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  Items: {rec.items.join(", ")}
-                </div>
-                <div className="text-sm text-green-600 mt-1">
-                  Estimated savings: ${rec.totalSavings.toFixed(2)}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <StoreRecommendations recommendations={recommendations} />
       )}
     </div>
   );
