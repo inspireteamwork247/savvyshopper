@@ -28,6 +28,7 @@ export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [newItem, setNewItem] = useState('');
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [recommendations, setRecommendations] = useState<StoreRecommendation[]>([]);
 
   const addItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +57,6 @@ export const ShoppingList = () => {
       return;
     }
 
-    const recommendations: StoreRecommendation[] = [];
     const itemsByStore: Record<string, string[]> = {};
 
     // Simple optimization algorithm (mock data)
@@ -81,18 +81,16 @@ export const ShoppingList = () => {
     });
 
     // Convert to recommendations
-    Object.entries(itemsByStore).forEach(([store, storeItems]) => {
-      recommendations.push({
-        storeName: store,
-        items: storeItems,
-        totalSavings: Math.random() * 10, // Mock savings calculation
-        distance: mockStoreData[store].distance
-      });
-    });
+    const newRecommendations = Object.entries(itemsByStore).map(([store, storeItems]) => ({
+      storeName: store,
+      items: storeItems,
+      totalSavings: Math.random() * 10, // Mock savings calculation
+      distance: mockStoreData[store].distance
+    }));
 
+    setRecommendations(newRecommendations);
     setShowRecommendations(true);
     toast.success("Shopping trip optimized!");
-    return recommendations;
   };
 
   return (
@@ -143,10 +141,10 @@ export const ShoppingList = () => {
         </Button>
       )}
 
-      {showRecommendations && items.length > 0 && (
+      {showRecommendations && recommendations.length > 0 && (
         <div className="space-y-3">
           <h3 className="font-medium text-lg">Recommended Stores</h3>
-          {optimizeTrip().map((rec, index) => (
+          {recommendations.map((rec, index) => (
             <Card key={index} className="animate-slideIn">
               <CardContent className="pt-4">
                 <div className="flex justify-between items-center mb-2">
