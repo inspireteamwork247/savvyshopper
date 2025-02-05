@@ -6,6 +6,7 @@ import { AddItemForm } from './shopping/AddItemForm';
 import { ItemsList } from './shopping/ItemsList';
 import { StoreRecommendations } from './shopping/StoreRecommendations';
 import { krogerApi } from '../services/krogerApi';
+import { walmartApi } from '../services/walmartApi';
 import { useQuery } from '@tanstack/react-query';
 
 interface ShoppingItem {
@@ -19,6 +20,7 @@ interface StoreRecommendation {
   items: string[];
   totalSavings: number;
   distance: string;
+  chain: 'Kroger' | 'Walmart';
 }
 
 export const ShoppingList = () => {
@@ -29,7 +31,13 @@ export const ShoppingList = () => {
 
   const { data: nearbyStores, isLoading: isLoadingStores } = useQuery({
     queryKey: ['stores', userZipCode],
-    queryFn: () => krogerApi.getNearbyStores(userZipCode),
+    queryFn: async () => {
+      const [krogerStores, walmartStores] = await Promise.all([
+        krogerApi.getNearbyStores(userZipCode),
+        walmartApi.getNearbyStores(userZipCode)
+      ]);
+      return { krogerStores, walmartStores };
+    },
     enabled: !!userZipCode,
   });
 
@@ -60,10 +68,12 @@ export const ShoppingList = () => {
     }
 
     try {
-      const stores = await krogerApi.getNearbyStores(userZipCode);
+      const krogerStores = await krogerApi.getNearbyStores(userZipCode);
+      const walmartStores = await walmartApi.getNearbyStores(userZipCode);
       const recommendations: StoreRecommendation[] = [];
 
-      for (const store of stores) {
+      // Process Kroger stores
+      for (const store of krogerStores) {
         const storeItems = [];
         let totalSavings = 0;
 
@@ -81,7 +91,33 @@ export const ShoppingList = () => {
             storeName: store.name,
             items: storeItems,
             totalSavings,
-            distance: `${(Math.random() * 5).toFixed(1)} miles`, // In a real app, you'd calculate this
+            distance: `${(Math.random() * 5).toFixed(1)} miles`,
+            chain: 'Kroger'
+          });
+        }
+      }
+
+      // Process Walmart stores
+      for (const store of walmartStores) {
+        const storeItems = [];
+        let totalSavings = 0;
+
+        for (const item of items) {
+          const products = await walmartApi.getProductPrices(store.id, item.name);
+          if (products.length > 0) {
+            const bestPrice = Math.min(...products.map(p => p.price.amount));
+            storeItems.push(item.name);
+            totalSavings += products[0].price.amount - bestPrice;
+          }
+        }
+
+        if (storeItems.length > 0) {
+          recommendations.push({
+            storeName: store.name,
+            items: storeItems,
+            totalSavings,
+            distance: `${(Math.random() * 5).toFixed(1)} miles`,
+            chain: 'Walmart'
           });
         }
       }
