@@ -11,7 +11,7 @@ const WebScrapingConfig = () => {
 
   return (
     <div className="space-y-6">
-      <Alert variant="warning">
+      <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           Web scraping may be subject to legal restrictions. Please ensure compliance with each website's terms of service.

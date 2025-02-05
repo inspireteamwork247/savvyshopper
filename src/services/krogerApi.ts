@@ -29,7 +29,8 @@ class KrogerAPI {
   private static clientId = ''; // You'll need to add your Kroger API client ID
   private accessToken: string | null = null;
 
-  private async authenticate(): Promise<void> {
+  // Changed from private to public
+  async authenticate(): Promise<void> {
     try {
       const response = await fetch(`${KrogerAPI.BASE_URL}/connect/oauth2/token`, {
         method: 'POST',
