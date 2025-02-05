@@ -26,11 +26,12 @@ interface WalmartProduct {
 
 class WalmartAPI {
   private static BASE_URL = 'https://marketplace.walmartapis.com/v3';
-  private static clientId = ''; // You'll need to add your Walmart API client ID
-  private static clientSecret = ''; // You'll need to add your Walmart API client secret
+  private static clientId = '';
+  private static clientSecret = '';
   private accessToken: string | null = null;
 
-  private async authenticate(): Promise<void> {
+  // Changed from private to public
+  async authenticate(): Promise<void> {
     try {
       const response = await fetch(`${WalmartAPI.BASE_URL}/token`, {
         method: 'POST',

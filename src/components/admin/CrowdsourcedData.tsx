@@ -53,7 +53,7 @@ const CrowdsourcedData = () => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge variant={submission.status === "verified" ? "success" : "warning"}>
+                <Badge variant={submission.status === "verified" ? "secondary" : "outline"}>
                   {submission.status}
                 </Badge>
               </TableCell>
