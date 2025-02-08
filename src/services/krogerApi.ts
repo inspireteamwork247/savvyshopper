@@ -1,3 +1,6 @@
+
+import { API_CONFIG } from '../config/api';
+
 interface KrogerAuthResponse {
   access_token: string;
   token_type: string;
@@ -25,11 +28,10 @@ interface KrogerProduct {
 }
 
 class KrogerAPI {
-  private static BASE_URL = 'https://api.kroger.com/v1';
-  private static clientId = 'savvy-shopper-2432612430342447666431504b5834686d77766b4c30656c5a3938532e676736446a6d486875766b59376f6c4e726b4f4d43384730334277683859712322802588174647286'; // You'll need to add your Kroger API client ID
+  private static BASE_URL = API_CONFIG.BASE_URL;
+  private static clientId = 'savvy-shopper-2432612430342447666431504b5834686d77766b4c30656c5a3938532e676736446a6d486875766b59376f6c4e726b4f4d43384730334277683859712322802588174647286';
   private accessToken: string | null = 'kHIg76hlb1y-_38eNgaR-YHQpdAvPOuBIzFvoaoa';
 
-  // Changed from private to public
   async authenticate(): Promise<void> {
     try {
       const response = await fetch(`${KrogerAPI.BASE_URL}/connect/oauth2/token`, {
