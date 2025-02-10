@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Route, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AddItemForm } from './shopping/AddItemForm';
 import { ItemsList } from './shopping/ItemsList';
 import { StoreRecommendations } from './shopping/StoreRecommendations';
-import { krogerApi } from '../services/krogerApi';
-import { walmartApi } from '../services/walmartApi';
+import { getStoreRecommendations } from '../services/recommendationsApi';
 import { useQuery } from '@tanstack/react-query';
 
 interface ShoppingItem {
@@ -15,30 +15,45 @@ interface ShoppingItem {
   quantity: number;
 }
 
-interface StoreRecommendation {
-  storeName: string;
-  items: string[];
-  totalSavings: number;
-  distance: string;
-  chain: 'Kroger' | 'Walmart';
-}
-
 export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [recommendations, setRecommendations] = useState<StoreRecommendation[]>([]);
   const [userZipCode, setUserZipCode] = useState('');
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const { data: nearbyStores, isLoading: isLoadingStores } = useQuery({
-    queryKey: ['stores', userZipCode],
+  useEffect(() => {
+    // Get user's location when component mounts
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          toast.error('Unable to get your location. Please enter your ZIP code.');
+        }
+      );
+    }
+  }, []);
+
+  const { data: recommendations, refetch: fetchRecommendations, isLoading } = useQuery({
+    queryKey: ['storeRecommendations', items, userZipCode, userLocation],
     queryFn: async () => {
-      const [krogerStores, walmartStores] = await Promise.all([
-        krogerApi.getNearbyStores(userZipCode),
-        walmartApi.getNearbyStores(userZipCode)
-      ]);
-      return { krogerStores, walmartStores };
+      if (items.length === 0 || !userZipCode || !userLocation) return null;
+      
+      const request = {
+        products: items.map(item => item.name),
+        zip_code: userZipCode,
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        labels: [], // You can add label support later if needed
+      };
+
+      return await getStoreRecommendations(request);
     },
-    enabled: !!userZipCode,
+    enabled: false, // Don't run automatically, wait for user action
   });
 
   const addItem = (itemName: string) => {
@@ -68,62 +83,7 @@ export const ShoppingList = () => {
     }
 
     try {
-      const krogerStores = await krogerApi.getNearbyStores(userZipCode);
-      const walmartStores = await walmartApi.getNearbyStores(userZipCode);
-      const recommendations: StoreRecommendation[] = [];
-
-      // Process Kroger stores
-      for (const store of krogerStores) {
-        const storeItems = [];
-        let totalSavings = 0;
-
-        for (const item of items) {
-          const products = await krogerApi.getProductPrices(store.locationId, item.name);
-          if (products.length > 0) {
-            const bestPrice = Math.min(...products.map(p => p.price.regular));
-            storeItems.push(item.name);
-            totalSavings += products[0].price.regular - bestPrice;
-          }
-        }
-
-        if (storeItems.length > 0) {
-          recommendations.push({
-            storeName: store.name,
-            items: storeItems,
-            totalSavings,
-            distance: `${(Math.random() * 5).toFixed(1)} miles`,
-            chain: 'Kroger'
-          });
-        }
-      }
-
-      // Process Walmart stores
-      for (const store of walmartStores) {
-        const storeItems = [];
-        let totalSavings = 0;
-
-        for (const item of items) {
-          const products = await walmartApi.getProductPrices(store.id, item.name);
-          if (products.length > 0) {
-            const bestPrice = Math.min(...products.map(p => p.price.amount));
-            storeItems.push(item.name);
-            totalSavings += products[0].price.amount - bestPrice;
-          }
-        }
-
-        if (storeItems.length > 0) {
-          recommendations.push({
-            storeName: store.name,
-            items: storeItems,
-            totalSavings,
-            distance: `${(Math.random() * 5).toFixed(1)} miles`,
-            chain: 'Walmart'
-          });
-        }
-      }
-
-      setRecommendations(recommendations);
-      setShowRecommendations(true);
+      await fetchRecommendations();
       toast.success("Shopping trip optimized!");
     } catch (error) {
       console.error('Error optimizing trip:', error);
@@ -156,14 +116,14 @@ export const ShoppingList = () => {
           onClick={optimizeTrip}
           className="w-full mb-4"
           variant="outline"
-          disabled={isLoadingStores || !userZipCode}
+          disabled={isLoading || !userZipCode}
         >
           <Route className="w-4 h-4 mr-2" />
-          {isLoadingStores ? 'Loading stores...' : 'Optimize Shopping Trip'}
+          {isLoading ? 'Loading recommendations...' : 'Optimize Shopping Trip'}
         </Button>
       )}
 
-      {showRecommendations && recommendations.length > 0 && (
+      {recommendations && recommendations.length > 0 && (
         <StoreRecommendations recommendations={recommendations} />
       )}
     </div>
