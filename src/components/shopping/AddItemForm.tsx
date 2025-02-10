@@ -5,9 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface AddItemFormProps {
-  onAddItem: (itemName: string) => void;
+  onAddItem: (itemName: string, quantity: string, labels: string[]) => void;
 }
 
 // Common grocery items for suggestions
@@ -18,10 +27,26 @@ const commonItems = [
   'Coffee', 'Tea', 'Sugar', 'Salt', 'Pepper'
 ];
 
+const quantities = {
+  'Milk': ['250ml', '500ml', '1L', '2L'],
+  'Yogurt': ['125g', '250g', '500g'],
+  'Rice': ['500g', '1kg', '2kg', '5kg'],
+  'default': ['1', '2', '3', '4', '5']
+};
+
+const labelCategories = {
+  'Dietary': ['Vegan', 'Vegetarian', 'Keto', 'Halal', 'Kosher', 'Gluten-Free'],
+  'Allergies': ['Contains Nuts', 'Contains Soy', 'Contains Dairy', 'Contains Eggs'],
+  'Health': ['Sugar Free', 'Low Fat', 'Low Sodium', 'High Protein'],
+  'Packaging': ['Plastic Free', 'Recyclable', 'Biodegradable']
+};
+
 export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   const [newItem, setNewItem] = useState('');
+  const [quantity, setQuantity] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +80,28 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setNewItem(suggestion);
     setSuggestions([]);
     setShowSuggestions(false);
+    // Reset quantity when item changes
+    setQuantity('');
+  };
+
+  const handleLabelSelect = (label: string) => {
+    if (!selectedLabels.includes(label)) {
+      setSelectedLabels([...selectedLabels, label]);
+    }
+  };
+
+  const removeLabel = (label: string) => {
+    setSelectedLabels(selectedLabels.filter(l => l !== label));
+  };
+
+  const getQuantityOptions = (item: string) => {
+    const itemLower = item.toLowerCase();
+    for (const [key, values] of Object.entries(quantities)) {
+      if (itemLower.includes(key.toLowerCase())) {
+        return values;
+      }
+    }
+    return quantities.default;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,45 +110,100 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       toast.error("Please enter an item name");
       return;
     }
-    onAddItem(newItem.trim());
+    if (!quantity) {
+      toast.error("Please select a quantity");
+      return;
+    }
+    onAddItem(newItem.trim(), quantity, selectedLabels);
     setNewItem('');
+    setQuantity('');
     setSuggestions([]);
     setShowSuggestions(false);
+    setSelectedLabels([]);
   };
 
   return (
-    <div className="relative">
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <Input
-          type="text"
-          value={newItem}
-          onChange={handleInputChange}
-          placeholder="Add an item..."
-          className="flex-1"
-          onFocus={() => newItem.trim() && setShowSuggestions(true)}
-        />
-        <Button type="submit" size="icon">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </form>
+    <div className="space-y-4">
+      <div className="relative">
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <Input
+            type="text"
+            value={newItem}
+            onChange={handleInputChange}
+            placeholder="Add an item..."
+            className="flex-1"
+            onFocus={() => newItem.trim() && setShowSuggestions(true)}
+          />
+          {newItem && (
+            <Select value={quantity} onValueChange={setQuantity}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Quantity" />
+              </SelectTrigger>
+              <SelectContent>
+                {getQuantityOptions(newItem).map((q) => (
+                  <SelectItem key={q} value={q}>
+                    {q}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button type="submit" size="icon">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </form>
 
-      {showSuggestions && suggestions.length > 0 && (
-        <Card
-          ref={suggestionsRef}
-          className="absolute z-50 w-full max-h-48 overflow-y-auto mt-1 bg-white shadow-lg rounded-md"
-        >
-          <div className="p-1">
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className="px-3 py-2 hover:bg-gray-100 cursor-pointer rounded-sm text-sm"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                {suggestion}
-              </div>
-            ))}
+        {showSuggestions && suggestions.length > 0 && (
+          <Card
+            ref={suggestionsRef}
+            className="absolute z-50 w-full max-h-48 overflow-y-auto mt-1 bg-white shadow-lg rounded-md"
+          >
+            <div className="p-1">
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer rounded-sm text-sm"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {Object.entries(labelCategories).map(([category, labels]) => (
+          <div key={category}>
+            <Select onValueChange={handleLabelSelect}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={`Select ${category}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {labels.map((label) => (
+                  <SelectItem key={label} value={label}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </Card>
+        ))}
+      </div>
+
+      {selectedLabels.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedLabels.map((label) => (
+            <Badge key={label} variant="secondary" className="flex items-center gap-1">
+              {label}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={() => removeLabel(label)}
+              />
+            </Badge>
+          ))}
+        </div>
       )}
     </div>
   );

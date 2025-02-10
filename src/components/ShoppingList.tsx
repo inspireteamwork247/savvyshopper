@@ -12,7 +12,8 @@ import { useQuery } from '@tanstack/react-query';
 interface ShoppingItem {
   id: string;
   name: string;
-  quantity: number;
+  quantity: string;
+  labels: string[];
 }
 
 export const ShoppingList = () => {
@@ -21,7 +22,6 @@ export const ShoppingList = () => {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
-    // Get user's location when component mounts
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -44,23 +44,24 @@ export const ShoppingList = () => {
       if (items.length === 0 || !userZipCode || !userLocation) return null;
       
       const request = {
-        products: items.map(item => item.name),
+        products: items.map(item => `${item.name} ${item.quantity}`),
         zip_code: userZipCode,
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
-        labels: [], // You can add label support later if needed
+        labels: items.flatMap(item => item.labels),
       };
 
       return await getStoreRecommendations(request);
     },
-    enabled: false, // Don't run automatically, wait for user action
+    enabled: false,
   });
 
-  const addItem = (itemName: string) => {
+  const addItem = (itemName: string, quantity: string, labels: string[]) => {
     const item: ShoppingItem = {
       id: Date.now().toString(),
       name: itemName.toLowerCase(),
-      quantity: 1,
+      quantity,
+      labels,
     };
     setItems([...items, item]);
     toast.success("Item added to list");
