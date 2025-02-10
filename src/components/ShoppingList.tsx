@@ -14,6 +14,7 @@ interface ShoppingItem {
   name: string;
   quantity: string;
   labels: string[];
+  brand?: string;
 }
 
 export const ShoppingList = () => {
@@ -44,7 +45,7 @@ export const ShoppingList = () => {
       if (items.length === 0 || !userZipCode || !userLocation) return null;
       
       const request = {
-        products: items.map(item => `${item.name} ${item.quantity}`),
+        products: items.map(item => `${item.name} ${item.quantity}${item.brand ? ` ${item.brand}` : ''}`),
         zip_code: userZipCode,
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
@@ -56,12 +57,13 @@ export const ShoppingList = () => {
     enabled: false,
   });
 
-  const addItem = (itemName: string, quantity: string, labels: string[]) => {
+  const addItem = (itemName: string, quantity: string, labels: string[], brand?: string) => {
     const item: ShoppingItem = {
       id: Date.now().toString(),
       name: itemName.toLowerCase(),
       quantity,
       labels,
+      brand,
     };
     setItems([...items, item]);
     toast.success("Item added to list");

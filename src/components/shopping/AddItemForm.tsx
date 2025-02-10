@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,8 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
 interface AddItemFormProps {
-  onAddItem: (itemName: string, quantity: string, labels: string[]) => void;
+  onAddItem: (itemName: string, quantity: string, labels: string[], brand?: string) => void;
 }
+
+// Common grocery items and their brands
+const itemBrands = {
+  'Milk': ['Organic Valley', 'Horizon', 'Lactaid', 'Fairlife', 'Store Brand'],
+  'Bread': ['Wonder', 'Nature\'s Own', 'Dave\'s Killer Bread', 'Sara Lee', 'Store Brand'],
+  'Yogurt': ['Chobani', 'Yoplait', 'Dannon', 'Siggi\'s', 'Store Brand'],
+  'Coffee': ['Starbucks', 'Folgers', 'Maxwell House', 'Peet\'s', 'Store Brand'],
+  'Cereal': ['Kellogg\'s', 'General Mills', 'Post', 'Quaker', 'Store Brand'],
+};
 
 // Common grocery items for suggestions
 const commonItems = [
@@ -47,6 +55,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<string>('');
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,6 +90,10 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setNewItem(suggestion);
     setSuggestions([]);
     setShowSuggestions(false);
+    // Update available brands when an item is selected
+    const brands = itemBrands[suggestion as keyof typeof itemBrands] || [];
+    setAvailableBrands(brands);
+    setSelectedBrand('');
     // Reset quantity when item changes
     setQuantity('');
   };
@@ -114,12 +128,14 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       toast.error("Please select a quantity");
       return;
     }
-    onAddItem(newItem.trim(), quantity, selectedLabels);
+    onAddItem(newItem.trim(), quantity, selectedLabels, selectedBrand);
     setNewItem('');
     setQuantity('');
     setSuggestions([]);
     setShowSuggestions(false);
     setSelectedLabels([]);
+    setSelectedBrand('');
+    setAvailableBrands([]);
   };
 
   return (
@@ -135,18 +151,34 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
             onFocus={() => newItem.trim() && setShowSuggestions(true)}
           />
           {newItem && (
-            <Select value={quantity} onValueChange={setQuantity}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Quantity" />
-              </SelectTrigger>
-              <SelectContent>
-                {getQuantityOptions(newItem).map((q) => (
-                  <SelectItem key={q} value={q}>
-                    {q}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <>
+              <Select value={quantity} onValueChange={setQuantity}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Quantity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getQuantityOptions(newItem).map((q) => (
+                    <SelectItem key={q} value={q}>
+                      {q}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {availableBrands.length > 0 && (
+                <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select Brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableBrands.map((brand) => (
+                      <SelectItem key={brand} value={brand}>
+                        {brand}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
           )}
           <Button type="submit" size="icon">
             <Plus className="w-4 h-4" />
