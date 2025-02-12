@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Star, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -11,48 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ItemSuggestions } from './ItemSuggestions';
+import { LabelSelect } from './LabelSelect';
+import { FavoriteFilters } from './FavoriteFilters';
+import { itemBrands, commonItems, quantities } from './constants';
 
 interface AddItemFormProps {
   onAddItem: (itemName: string, quantity: string, labels: string[], brand?: string) => void;
 }
-
-// Common grocery items and their brands
-const itemBrands = {
-  'Milk': ['Organic Valley', 'Horizon', 'Lactaid', 'Fairlife', 'Store Brand'],
-  'Bread': ['Wonder', 'Nature\'s Own', 'Dave\'s Killer Bread', 'Sara Lee', 'Store Brand'],
-  'Yogurt': ['Chobani', 'Yoplait', 'Dannon', 'Siggi\'s', 'Store Brand'],
-  'Coffee': ['Starbucks', 'Folgers', 'Maxwell House', 'Peet\'s', 'Store Brand'],
-  'Cereal': ['Kellogg\'s', 'General Mills', 'Post', 'Quaker', 'Store Brand'],
-};
-
-// Common grocery items for suggestions
-const commonItems = [
-  'Milk', 'Bread', 'Eggs', 'Cheese', 'Butter',
-  'Yogurt', 'Chicken', 'Rice', 'Pasta', 'Tomatoes',
-  'Onions', 'Potatoes', 'Bananas', 'Apples', 'Orange Juice',
-  'Coffee', 'Tea', 'Sugar', 'Salt', 'Pepper'
-];
-
-const quantities = {
-  'Milk': ['250ml', '500ml', '1L', '2L'],
-  'Yogurt': ['125g', '250g', '500g'],
-  'Rice': ['500g', '1kg', '2kg', '5kg'],
-  'default': ['1', '2', '3', '4', '5']
-};
-
-const labelCategories = {
-  'Dietary': ['Vegan', 'Vegetarian', 'Keto', 'Halal', 'Kosher', 'Gluten-Free'],
-  'Allergies': ['Contains Nuts', 'Contains Soy', 'Contains Dairy', 'Contains Eggs'],
-  'Health': ['Sugar Free', 'Low Fat', 'Low Sodium', 'High Protein'],
-  'Packaging': ['Plastic Free', 'Recyclable', 'Biodegradable']
-};
 
 export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   const [newItem, setNewItem] = useState('');
@@ -109,44 +75,6 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setQuantity('');
   };
 
-  const handleLabelSelect = (label: string) => {
-    if (!selectedLabels.includes(label)) {
-      setSelectedLabels([...selectedLabels, label]);
-    }
-  };
-
-  const removeLabel = (label: string) => {
-    setSelectedLabels(selectedLabels.filter(l => l !== label));
-  };
-
-  const saveFavoriteFilter = () => {
-    if (selectedLabels.length === 0) {
-      toast.error("Select some labels first");
-      return;
-    }
-    
-    const filterName = prompt("Enter a name for this filter set:");
-    if (!filterName) return;
-
-    if (favoriteFilters.some(filter => filter.name === filterName)) {
-      toast.error("A filter with this name already exists");
-      return;
-    }
-
-    setFavoriteFilters([...favoriteFilters, { name: filterName, labels: selectedLabels }]);
-    toast.success("Filter set saved!");
-  };
-
-  const applyFavoriteFilter = (filter: { name: string; labels: string[] }) => {
-    setSelectedLabels(filter.labels);
-    toast.success(`Applied ${filter.name} filter`);
-  };
-
-  const deleteFavoriteFilter = (filterName: string) => {
-    setFavoriteFilters(favoriteFilters.filter(filter => filter.name !== filterName));
-    toast.success("Filter set deleted");
-  };
-
   const getQuantityOptions = (item: string) => {
     const itemLower = item.toLowerCase();
     for (const [key, values] of Object.entries(quantities)) {
@@ -180,48 +108,12 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={saveFavoriteFilter}
-            className="flex items-center gap-1"
-          >
-            <Star className="w-4 h-4" />
-            Save Filter Set
-          </Button>
-          {favoriteFilters.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Favorite Filters
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {favoriteFilters.map((filter) => (
-                  <DropdownMenuItem
-                    key={filter.name}
-                    className="flex items-center justify-between"
-                  >
-                    <span
-                      className="flex-1 cursor-pointer"
-                      onClick={() => applyFavoriteFilter(filter)}
-                    >
-                      {filter.name}
-                    </span>
-                    <X
-                      className="w-4 h-4 text-destructive cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteFavoriteFilter(filter.name);
-                      }}
-                    />
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        <FavoriteFilters
+          selectedLabels={selectedLabels}
+          onApplyFilter={setSelectedLabels}
+          favoriteFilters={favoriteFilters}
+          setFavoriteFilters={setFavoriteFilters}
+        />
       </div>
 
       <div className="relative">
@@ -270,57 +162,25 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
         </form>
 
         {showSuggestions && suggestions.length > 0 && (
-          <Card
-            ref={suggestionsRef}
-            className="absolute z-50 w-full max-h-48 overflow-y-auto mt-1 bg-white shadow-lg rounded-md"
-          >
-            <div className="p-1">
-              {suggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer rounded-sm text-sm"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          </Card>
+          <ItemSuggestions
+            suggestions={suggestions}
+            onSelect={handleSuggestionClick}
+            suggestionsRef={suggestionsRef}
+          />
         )}
       </div>
 
-      <div className="space-y-2">
-        {Object.entries(labelCategories).map(([category, labels]) => (
-          <div key={category}>
-            <Select onValueChange={handleLabelSelect}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={`Select ${category}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {labels.map((label) => (
-                  <SelectItem key={label} value={label}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
-      </div>
-
-      {selectedLabels.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedLabels.map((label) => (
-            <Badge key={label} variant="secondary" className="flex items-center gap-1">
-              {label}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => removeLabel(label)}
-              />
-            </Badge>
-          ))}
-        </div>
-      )}
+      <LabelSelect
+        selectedLabels={selectedLabels}
+        onLabelSelect={(label) => {
+          if (!selectedLabels.includes(label)) {
+            setSelectedLabels([...selectedLabels, label]);
+          }
+        }}
+        onRemoveLabel={(label) => {
+          setSelectedLabels(selectedLabels.filter(l => l !== label));
+        }}
+      />
     </div>
   );
 };
