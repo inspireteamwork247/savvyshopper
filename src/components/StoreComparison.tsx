@@ -1,3 +1,4 @@
+
 import { Store, DollarSign, MapPin } from 'lucide-react';
 
 interface StorePrice {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TrendingUp, Clock, Store, Percent } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
