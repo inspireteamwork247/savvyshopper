@@ -47,27 +47,25 @@ const chartConfig = {
       dark: '#34d399',
     },
   },
-  history: {
-    milk: {
-      label: 'Milk',
-      theme: {
-        light: '#6366f1',
-        dark: '#818cf8',
-      },
+  milk: {
+    label: 'Milk',
+    theme: {
+      light: '#6366f1',
+      dark: '#818cf8',
     },
-    bread: {
-      label: 'Bread',
-      theme: {
-        light: '#f59e0b',
-        dark: '#fbbf24',
-      },
+  },
+  bread: {
+    label: 'Bread',
+    theme: {
+      light: '#f59e0b',
+      dark: '#fbbf24',
     },
-    eggs: {
-      label: 'Eggs',
-      theme: {
-        light: '#ec4899',
-        dark: '#f472b6',
-      },
+  },
+  eggs: {
+    label: 'Eggs',
+    theme: {
+      light: '#ec4899',
+      dark: '#f472b6',
     },
   },
 };
@@ -184,21 +182,21 @@ export const ShoppingAnalytics = () => {
               <Line
                 type="monotone"
                 dataKey="milk"
-                name="history.milk"
+                name="milk"
                 stroke="var(--color-milk)"
                 strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="bread"
-                name="history.bread"
+                name="bread"
                 stroke="var(--color-bread)"
                 strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="eggs"
-                name="history.eggs"
+                name="eggs"
                 stroke="var(--color-eggs)"
                 strokeWidth={2}
               />
