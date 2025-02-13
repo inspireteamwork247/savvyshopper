@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route, ShoppingCart, Copy, Save } from 'lucide-react';
+import { Route, ShoppingCart, Copy, Save, Share2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AddItemForm } from './shopping/AddItemForm';
@@ -22,6 +22,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ShoppingItem {
   id: string;
@@ -36,7 +42,53 @@ interface SavedList {
   name: string;
   items: ShoppingItem[];
   created: string;
+  shared?: boolean;
+  collaborators?: string[];
 }
+
+interface ShareDialogProps {
+  onShare: (email: string) => void;
+}
+
+const ShareDialog = ({ onShare }: ShareDialogProps) => {
+  const [email, setEmail] = useState('');
+
+  const handleShare = () => {
+    if (!email.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+    onShare(email.trim());
+    setEmail('');
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Share2 className="w-4 h-4 mr-2" />
+          Share List
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Share Shopping List</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-4">
+          <Input
+            type="email"
+            placeholder="Enter email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Button onClick={handleShare} className="w-full">
+            Share
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
@@ -170,6 +222,29 @@ export const ShoppingList = () => {
     }
   };
 
+  const handleShareList = (email: string) => {
+    const currentList = savedLists.find(l => l.id === selectedList);
+    if (!currentList) {
+      toast.error("Please save or select a list first");
+      return;
+    }
+
+    // In a real app, this would make an API call to share the list
+    const updatedLists = savedLists.map(list => {
+      if (list.id === selectedList) {
+        return {
+          ...list,
+          shared: true,
+          collaborators: [...(list.collaborators || []), email],
+        };
+      }
+      return list;
+    });
+
+    setSavedLists(updatedLists);
+    toast.success(`List shared with ${email}`);
+  };
+
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-4">
@@ -178,38 +253,42 @@ export const ShoppingList = () => {
           <h2 className="text-xl font-semibold">Shopping List</h2>
         </div>
         
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Save className="w-4 h-4 mr-2" />
-              Save List
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save Shopping List</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <Input
-                placeholder="Enter list name"
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-              />
-              <Button onClick={saveCurrentList} className="w-full">
+        <div className="flex gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Save className="w-4 h-4 mr-2" />
                 Save List
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Save Shopping List</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <Input
+                  placeholder="Enter list name"
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                />
+                <Button onClick={saveCurrentList} className="w-full">
+                  Save List
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {items.length > 0 && <ShareDialog onShare={handleShareList} />}
+        </div>
       </div>
 
       {savedLists.length > 0 && (
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4">
           <Select value={selectedList} onValueChange={(value) => {
             setSelectedList(value);
             loadList(value);
           }}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger>
               <SelectValue placeholder="Load saved list" />
             </SelectTrigger>
             <SelectContent>
@@ -217,21 +296,31 @@ export const ShoppingList = () => {
                 <SelectItem
                   key={list.id}
                   value={list.id}
-                  className="flex items-center justify-between"
                 >
                   <div className="flex items-center justify-between w-full pr-2">
-                    <span>{list.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        duplicateList(list.id);
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <span>{list.name}</span>
+                      {list.shared && (
+                        <Users className="w-4 h-4 text-blue-500" />
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => duplicateList(list.id)}>
+                          Duplicate List
+                        </DropdownMenuItem>
+                        {list.collaborators && (
+                          <DropdownMenuItem>
+                            {list.collaborators.length} Collaborator(s)
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </SelectItem>
               ))}
