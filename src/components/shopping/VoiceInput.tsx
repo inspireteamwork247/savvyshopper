@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 // Add TypeScript declarations for Web Speech API
-interface IWindow extends Window {
-  SpeechRecognition?: typeof webkitSpeechRecognition;
-  webkitSpeechRecognition?: typeof webkitSpeechRecognition;
+interface IWindow {
+  SpeechRecognition?: any;
+  webkitSpeechRecognition?: any;
 }
 
 declare global {
