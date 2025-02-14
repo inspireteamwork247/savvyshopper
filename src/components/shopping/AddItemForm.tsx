@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Barcode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -13,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { ItemSuggestions } from './ItemSuggestions';
 import { LabelSelect } from './LabelSelect';
+import { BarcodeScanner } from './BarcodeScanner';
+import { VoiceInput } from './VoiceInput';
 import { FavoriteFilters } from './FavoriteFilters';
 import { itemBrands, commonItems, quantities } from './constants';
 
@@ -33,6 +34,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     return saved ? JSON.parse(saved) : [];
   });
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [autoReorder, setAutoReorder] = useState<boolean>(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -105,6 +108,16 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setAvailableBrands([]);
   };
 
+  const handleScan = (barcode: string) => {
+    toast.success(`Scanned barcode: ${barcode}`);
+    onAddItem(`Item ${barcode}`, '1', selectedLabels);
+  };
+
+  const handleVoiceInput = (text: string) => {
+    setNewItem(text);
+    toast.success('Voice input received');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
@@ -118,14 +131,26 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
 
       <div className="relative">
         <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            type="text"
-            value={newItem}
-            onChange={handleInputChange}
-            placeholder="Add an item..."
-            className="flex-1"
-            onFocus={() => newItem.trim() && setShowSuggestions(true)}
-          />
+          <div className="flex-1 flex gap-2">
+            <Input
+              type="text"
+              value={newItem}
+              onChange={handleInputChange}
+              placeholder="Add an item..."
+              className="flex-1"
+              onFocus={() => newItem.trim() && setShowSuggestions(true)}
+            />
+            <VoiceInput onVoiceInput={handleVoiceInput} />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setIsScannerOpen(true)}
+            >
+              <Barcode className="h-4 w-4" />
+            </Button>
+          </div>
+
           {newItem && (
             <>
               <Select value={quantity} onValueChange={setQuantity}>
@@ -180,6 +205,12 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
         onRemoveLabel={(label) => {
           setSelectedLabels(selectedLabels.filter(l => l !== label));
         }}
+      />
+
+      <BarcodeScanner
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScan}
       />
     </div>
   );
