@@ -4,18 +4,32 @@ import { Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
+// Add TypeScript declarations for Web Speech API
+interface IWindow extends Window {
+  SpeechRecognition?: typeof SpeechRecognition;
+  webkitSpeechRecognition?: typeof SpeechRecognition;
+}
+
+declare global {
+  interface Window extends IWindow {}
+}
+
+type SpeechRecognitionType = SpeechRecognition | null;
+
 interface VoiceInputProps {
   onVoiceInput: (text: string) => void;
 }
 
 export const VoiceInput = ({ onVoiceInput }: VoiceInputProps) => {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognitionType>(null);
 
   useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognition();
+    // Get the correct Speech Recognition API for the browser
+    const SpeechRecognitionAPI = (window as IWindow).SpeechRecognition || (window as IWindow).webkitSpeechRecognition;
+
+    if (SpeechRecognitionAPI) {
+      const recognitionInstance = new SpeechRecognitionAPI();
       recognitionInstance.continuous = false;
       recognitionInstance.interimResults = false;
       
