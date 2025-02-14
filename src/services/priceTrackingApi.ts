@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 
 interface PriceRecord {
   itemId: string;
@@ -118,4 +119,3 @@ const checkPriceAlerts = (priceRecord: PriceRecord) => {
     }
   });
 };
-
