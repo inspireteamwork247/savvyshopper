@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -14,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { subscribeToPriceAlert, unsubscribeFromPriceAlert } from '../../services/priceTrackingApi';
+import { DealSocial } from '@/components/social/DealSocial';
 
 interface ItemDetailProps {
   open: boolean;
@@ -162,6 +162,8 @@ export const ItemDetail = ({ open, onClose, item, onToggleFavorite, isFavorite }
               </ResponsiveContainer>
             </div>
           </div>
+
+          <DealSocial dealId={item.id} />
         </div>
       </DialogContent>
     </Dialog>
