@@ -1,15 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Heart, Store, Tag, BarChart3 } from 'lucide-react';
+import { Heart, Store, Tag, BarChart3, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { subscribeToPriceAlert, unsubscribeFromPriceAlert } from '../../services/priceTrackingApi';
 
 interface ItemDetailProps {
   open: boolean;
@@ -27,22 +31,92 @@ interface ItemDetailProps {
 }
 
 export const ItemDetail = ({ open, onClose, item, onToggleFavorite, isFavorite }: ItemDetailProps) => {
+  const [showAlertForm, setShowAlertForm] = useState(false);
+  const [targetPrice, setTargetPrice] = useState(item.price);
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = () => {
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    if (targetPrice <= 0) {
+      toast.error('Please enter a valid target price');
+      return;
+    }
+    subscribeToPriceAlert(item.id, targetPrice, email);
+    setShowAlertForm(false);
+    setEmail('');
+  };
+
+  const handleUnsubscribe = () => {
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    unsubscribeFromPriceAlert(item.id, email);
+    setShowAlertForm(false);
+    setEmail('');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span className="capitalize">{item.name}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onToggleFavorite}
-              className={isFavorite ? "text-red-500" : ""}
-            >
-              <Heart className={isFavorite ? "fill-current" : ""} />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowAlertForm(!showAlertForm)}
+              >
+                <Bell className={showAlertForm ? "text-blue-500" : ""} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onToggleFavorite}
+                className={isFavorite ? "text-red-500" : ""}
+              >
+                <Heart className={isFavorite ? "fill-current" : ""} />
+              </Button>
+            </div>
           </DialogTitle>
+          <DialogDescription>
+            Track this item's price and get notified when it drops.
+          </DialogDescription>
         </DialogHeader>
+
+        {showAlertForm && (
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-semibold">Set Price Alert</h3>
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Target price"
+                value={targetPrice}
+                onChange={(e) => setTargetPrice(Number(e.target.value))}
+                min={0}
+                step={0.01}
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleSubscribe} className="flex-1">
+                  Subscribe
+                </Button>
+                <Button onClick={handleUnsubscribe} variant="outline" className="flex-1">
+                  Unsubscribe
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           <div className="flex items-center gap-4">
