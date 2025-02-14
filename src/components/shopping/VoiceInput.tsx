@@ -6,15 +6,15 @@ import { toast } from 'sonner';
 
 // Add TypeScript declarations for Web Speech API
 interface IWindow extends Window {
-  SpeechRecognition?: typeof SpeechRecognition;
-  webkitSpeechRecognition?: typeof SpeechRecognition;
+  SpeechRecognition?: typeof webkitSpeechRecognition;
+  webkitSpeechRecognition?: typeof webkitSpeechRecognition;
 }
 
 declare global {
   interface Window extends IWindow {}
 }
 
-type SpeechRecognitionType = SpeechRecognition | null;
+type RecognitionInstance = any; // Using any temporarily to resolve circular reference
 
 interface VoiceInputProps {
   onVoiceInput: (text: string) => void;
@@ -22,7 +22,7 @@ interface VoiceInputProps {
 
 export const VoiceInput = ({ onVoiceInput }: VoiceInputProps) => {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognitionType>(null);
+  const [recognition, setRecognition] = useState<RecognitionInstance>(null);
 
   useEffect(() => {
     // Get the correct Speech Recognition API for the browser
