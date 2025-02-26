@@ -1,13 +1,16 @@
-
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Save } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { labelCategories } from "@/components/shopping/constants";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Save } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface UserPreferences {
   preferred_stores: string[];
@@ -27,6 +30,15 @@ const commonStores = [
 ];
 
 const Profile = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const saved = localStorage.getItem('userPreferences');
     return saved ? JSON.parse(saved) : {
@@ -117,6 +129,14 @@ const Profile = () => {
     });
   };
 
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -125,7 +145,21 @@ const Profile = () => {
       className="min-h-screen bg-gray-50 py-8 px-4"
     >
       <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Preferences</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Shopping Preferences</h1>
+          <Button variant="destructive" onClick={async () => {
+            try {
+              const { error } = await supabase.auth.signOut();
+              if (error) throw error;
+              navigate("/auth");
+              toast.success("Successfully logged out!");
+            } catch (error: any) {
+              toast.error(error.message);
+            }
+          }}>
+            Logout
+          </Button>
+        </div>
 
         <Card>
           <CardHeader>
