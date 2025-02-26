@@ -9,31 +9,36 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Deals from "./pages/Deals";
+import Auth from "./pages/Auth";
 import { AnimatePresence } from "framer-motion";
 import BottomNav from "./components/navigation/BottomNav";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="pb-20"> {/* Add padding to prevent content from being hidden behind the navigation */}
-          <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/deals" element={<Deals />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AnimatePresence>
-        </div>
-        <BottomNav />
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <div className="pb-20">
+            <AnimatePresence mode="wait">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/deals" element={<Deals />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AnimatePresence>
+          </div>
+          <BottomNav />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
