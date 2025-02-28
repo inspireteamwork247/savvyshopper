@@ -32,9 +32,9 @@ const BottomNav = () => {
             <span className="text-xs mt-1">Deals</span>
           </Link>
           <Link
-            to="/shopping-list"
+            to="/tasks"
             className={`flex flex-col items-center p-2 ${
-              isActive("/shopping-list") ? "text-primary" : "text-gray-500"
+              isActive("/tasks") ? "text-primary" : "text-gray-500"
             }`}
           >
             <ShoppingCart className="w-6 h-6" />

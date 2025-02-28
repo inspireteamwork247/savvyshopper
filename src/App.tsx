@@ -30,6 +30,7 @@ const App = () => (
                 <Route path="/deals" element={<Deals />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/tasks" element={<Index />} /> {/* Temporarily mapping to Index until Tasks page is created */}
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
