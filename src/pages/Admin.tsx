@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Retailer } from "@/types/admin";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Search, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, RefreshCw, Grid, List, Play } from "lucide-react";
 import RetailerDialog from "@/components/admin/RetailerDialog";
 import StoreDialog from "@/components/admin/StoreDialog";
 import StoreBranchDialog from "@/components/admin/StoreBranchDialog";
@@ -25,10 +25,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Dashboard from "@/components/admin/Dashboard";
+import { useSearchParams } from "react-router-dom";
+import RetailerTableView from "@/components/admin/RetailerTableView";
+import StoreTableView from "@/components/admin/StoreTableView";
+import BranchTableView from "@/components/admin/BranchTableView";
+import CrawlerTaskTableView from "@/components/admin/CrawlerTaskTableView";
+import TaskDetailsDialog from "@/components/admin/TaskDetailsDialog";
+import LocationFilter from "@/components/admin/LocationFilter";
 
 export default function Admin() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Data states
   const [retailers, setRetailers] = useState<Retailer[]>([]);
@@ -47,6 +55,7 @@ export default function Admin() {
   const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
   const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isTaskDetailsOpen, setIsTaskDetailsOpen] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,7 +66,20 @@ export default function Admin() {
   const [storeFilter, setStoreFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [taskFilter, setTaskFilter] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [countryFilter, setCountryFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  
+  // View states
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  
+  // Get tab from URL or default to dashboard
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromUrl || "dashboard");
+  
+  // Get retailerId, storeId from URL
+  const retailerIdFromUrl = searchParams.get("retailerId");
+  const storeIdFromUrl = searchParams.get("storeId");
   
   // Loading states
   const [isRetailersLoading, setIsRetailersLoading] = useState(false);
@@ -79,6 +101,13 @@ export default function Admin() {
       fetchTasks();
     }
   }, [user]);
+  
+  // Update URL when tab changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", activeTab);
+    setSearchParams(params);
+  }, [activeTab, setSearchParams]);
 
   const fetchRetailers = async () => {
     try {
@@ -208,25 +237,95 @@ export default function Admin() {
       toast.error('Failed to delete task: ' + error.message);
     }
   };
+  
+  const handleRunTask = async (task: CrawlerTask) => {
+    try {
+      toast.info(`Running task for ${stores.find(s => s.id === task.store_id)?.store_name || 'Unknown store'}`);
+      // In a real implementation, this would trigger an actual crawler task
+      const { error } = await supabase
+        .from('crawler_tasks')
+        .update({ 
+          status: 'RUNNING',
+          last_run: new Date().toISOString()
+        })
+        .eq('id', task.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setTasks(tasks.map(t => 
+        t.id === task.id ? { ...t, status: 'RUNNING', last_run: new Date().toISOString() } : t
+      ));
+      
+      // Simulate task completion after 3 seconds
+      setTimeout(async () => {
+        const { error } = await supabase
+          .from('crawler_tasks')
+          .update({ 
+            status: 'SUCCESS'
+          })
+          .eq('id', task.id);
+        
+        if (error) {
+          console.error('Error updating task status', error);
+          return;
+        }
+        
+        // Update local state
+        setTasks(tasks.map(t => 
+          t.id === task.id ? { ...t, status: 'SUCCESS' } : t
+        ));
+        
+        toast.success(`Task completed successfully`);
+      }, 3000);
+      
+    } catch (error: any) {
+      toast.error('Failed to run task: ' + error.message);
+    }
+  };
 
   // Filtering functions
-  const filteredRetailers = retailers.filter(retailer => 
-    retailer.name.toLowerCase().includes(retailerFilter.toLowerCase())
-  );
+  const applyLocationFilters = (item: { country: string; city?: string; }) => {
+    const matchesCountry = !countryFilter || item.country.toLowerCase().includes(countryFilter.toLowerCase());
+    const matchesCity = !cityFilter || (item.city?.toLowerCase().includes(cityFilter.toLowerCase()) ?? false);
+    // State filter is applied differently for branches and stores/retailers
+    return matchesCountry && matchesCity;
+  };
 
-  const filteredStores = stores.filter(store => 
-    store.store_name.toLowerCase().includes(storeFilter.toLowerCase())
-  );
+  const filteredRetailers = retailers
+    .filter(retailer => retailerFilter === "" || retailer.name.toLowerCase().includes(retailerFilter.toLowerCase()))
+    .filter(applyLocationFilters);
 
-  const filteredBranches = branches.filter(branch => 
-    branch.city.toLowerCase().includes(branchFilter.toLowerCase()) ||
-    branch.country.toLowerCase().includes(branchFilter.toLowerCase())
-  );
+  const filteredStores = stores
+    .filter(store => storeFilter === "" || store.store_name.toLowerCase().includes(storeFilter.toLowerCase()))
+    .filter(store => !retailerIdFromUrl || store.retailer_id === retailerIdFromUrl)
+    .filter(applyLocationFilters);
 
-  const filteredTasks = tasks.filter(task => 
-    task.scraper_type.toLowerCase().includes(taskFilter.toLowerCase()) ||
-    task.status.toLowerCase().includes(taskFilter.toLowerCase())
-  );
+  const filteredBranches = branches
+    .filter(branch => branchFilter === "" || 
+      branch.city.toLowerCase().includes(branchFilter.toLowerCase()) ||
+      branch.country.toLowerCase().includes(branchFilter.toLowerCase()) ||
+      branch.branch_id.toLowerCase().includes(branchFilter.toLowerCase())
+    )
+    .filter(branch => !storeIdFromUrl || branch.store_id === storeIdFromUrl)
+    .filter(branch => {
+      if (!stateFilter) return true;
+      // In this example we use street as a proxy for "state/region" for filtering
+      return branch.street.toLowerCase().includes(stateFilter.toLowerCase());
+    })
+    .filter(applyLocationFilters);
+
+  const filteredTasks = tasks
+    .filter(task => taskFilter === "" || 
+      task.scraper_type.toLowerCase().includes(taskFilter.toLowerCase()) ||
+      task.status.toLowerCase().includes(taskFilter.toLowerCase())
+    )
+    .filter(task => !storeIdFromUrl || task.store_id === storeIdFromUrl)
+    .filter(task => {
+      if (!retailerIdFromUrl) return true;
+      const store = stores.find(s => s.id === task.store_id);
+      return store?.retailer_id === retailerIdFromUrl;
+    });
 
   // Pagination logic
   const paginateData = <T,>(data: T[], page: number, itemsPerPage: number) => {
@@ -280,6 +379,12 @@ export default function Admin() {
       </Pagination>
     );
   };
+  
+  const resetLocationFilters = () => {
+    setCountryFilter("");
+    setStateFilter("");
+    setCityFilter("");
+  };
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -288,6 +393,9 @@ export default function Admin() {
   if (!user) {
     return null;
   }
+  
+  // Determine if we should show location filters on the current tab
+  const showLocationFilters = ['retailers', 'stores', 'branches'].includes(activeTab);
 
   return (
     <div className="container mx-auto py-8">
@@ -325,8 +433,20 @@ export default function Admin() {
           <TabsTrigger value="retailers">Retailers</TabsTrigger>
           <TabsTrigger value="stores">Stores</TabsTrigger>
           <TabsTrigger value="branches">Store Branches</TabsTrigger>
-          <TabsTrigger value="crawlers">Crawler Tasks</TabsTrigger>
+          <TabsTrigger value="tasks">Crawler Tasks</TabsTrigger>
         </TabsList>
+
+        {showLocationFilters && (
+          <LocationFilter
+            country={countryFilter}
+            setCountry={setCountryFilter}
+            state={stateFilter}
+            setState={setStateFilter}
+            city={cityFilter}
+            setCity={setCityFilter}
+            onReset={resetLocationFilters}
+          />
+        )}
 
         <TabsContent value="dashboard" className="space-y-4">
           <Dashboard
@@ -339,17 +459,37 @@ export default function Admin() {
 
         <TabsContent value="retailers" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter retailers..."
-                className="pl-8"
-                value={retailerFilter}
-                onChange={(e) => {
-                  setRetailerFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Filter retailers..."
+                  className="pl-8"
+                  value={retailerFilter}
+                  onChange={(e) => {
+                    setRetailerFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+              <div className="border rounded-md flex">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-r-none"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -371,67 +511,131 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedRetailers.map((retailer) => (
-              <Card key={retailer.id}>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{retailer.name}</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedRetailer(retailer);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => handleDeleteRetailer(retailer.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedRetailers.map((retailer) => (
+                <Card key={retailer.id}>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>{retailer.name}</span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedRetailer(retailer);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDeleteRetailer(retailer.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Website: {retailer.website || 'N/A'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Integration: {retailer.integration_type}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Countries: {retailer.countries.join(', ')}
+                      </p>
+                      <div className="pt-2 flex justify-between">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSearchParams({ tab: "stores", retailerId: retailer.id });
+                          }}
+                        >
+                          View Stores
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSearchParams({ tab: "tasks", retailerId: retailer.id });
+                          }}
+                        >
+                          View Tasks
+                        </Button>
+                      </div>
                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Website: {retailer.website || 'N/A'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Integration: {retailer.integration_type}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Countries: {retailer.countries.join(', ')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <RetailerTableView
+              retailers={paginatedRetailers}
+              stores={stores}
+              tasks={tasks}
+              onEditRetailer={(retailer) => {
+                setSelectedRetailer(retailer);
+                setIsDialogOpen(true);
+              }}
+              onDeleteRetailer={handleDeleteRetailer}
+              onEditStore={(store) => {
+                setSelectedStore(store);
+                setIsStoreDialogOpen(true);
+              }}
+              onDeleteStore={handleDeleteStore}
+              onEditTask={(task) => {
+                setSelectedTask(task);
+                setIsTaskDialogOpen(true);
+              }}
+              onDeleteTask={handleDeleteTask}
+              onRunTask={handleRunTask}
+            />
+          )}
 
           {renderPagination(filteredRetailers.length)}
         </TabsContent>
 
         <TabsContent value="stores" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter stores..."
-                className="pl-8"
-                value={storeFilter}
-                onChange={(e) => {
-                  setStoreFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Filter stores..."
+                  className="pl-8"
+                  value={storeFilter}
+                  onChange={(e) => {
+                    setStoreFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+              <div className="border rounded-md flex">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-r-none"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -453,67 +657,133 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedStores.map((store) => (
-              <Card key={store.id}>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{store.store_name}</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedStore(store);
-                          setIsStoreDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => handleDeleteStore(store.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedStores.map((store) => (
+                <Card key={store.id}>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>{store.store_name}</span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedStore(store);
+                            setIsStoreDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDeleteStore(store.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Country: {store.country}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Last Updated: {new Date(store.last_updated).toLocaleString()}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Retailer: {retailers.find(r => r.id === store.retailer_id)?.name || 'Unknown'}
+                      </p>
+                      <div className="pt-2 flex justify-between">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSearchParams({ tab: "branches", storeId: store.id });
+                          }}
+                        >
+                          View Branches
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSearchParams({ tab: "tasks", storeId: store.id });
+                          }}
+                        >
+                          View Tasks
+                        </Button>
+                      </div>
                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Country: {store.country}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Last Updated: {new Date(store.last_updated).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Retailer: {retailers.find(r => r.id === store.retailer_id)?.name || 'Unknown'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <StoreTableView
+              stores={paginatedStores}
+              branches={branches}
+              tasks={tasks}
+              retailers={retailers}
+              retailerId={retailerIdFromUrl || undefined}
+              onEditStore={(store) => {
+                setSelectedStore(store);
+                setIsStoreDialogOpen(true);
+              }}
+              onDeleteStore={handleDeleteStore}
+              onEditBranch={(branch) => {
+                setSelectedBranch(branch);
+                setIsBranchDialogOpen(true);
+              }}
+              onDeleteBranch={handleDeleteBranch}
+              onEditTask={(task) => {
+                setSelectedTask(task);
+                setIsTaskDialogOpen(true);
+              }}
+              onDeleteTask={handleDeleteTask}
+              onRunTask={handleRunTask}
+            />
+          )}
 
           {renderPagination(filteredStores.length)}
         </TabsContent>
 
         <TabsContent value="branches" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter branches (city, country)..."
-                className="pl-8"
-                value={branchFilter}
-                onChange={(e) => {
-                  setBranchFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Filter branches (city, country)..."
+                  className="pl-8"
+                  value={branchFilter}
+                  onChange={(e) => {
+                    setBranchFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+              <div className="border rounded-md flex">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-r-none"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -535,60 +805,74 @@ export default function Admin() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedBranches.map((branch) => (
-              <Card key={branch.id}>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{branch.branch_id}</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedBranch(branch);
-                          setIsBranchDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => handleDeleteBranch(branch.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      {branch.street} {branch.house_number}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {branch.zip_code} {branch.city}, {branch.country}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Store: {stores.find(s => s.id === branch.store_id)?.store_name || 'Unknown'}
-                    </p>
-                    {branch.latitude && branch.longitude && (
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedBranches.map((branch) => (
+                <Card key={branch.id}>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      <span>{branch.branch_id}</span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedBranch(branch);
+                            setIsBranchDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDeleteBranch(branch.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        Location: {branch.latitude}, {branch.longitude}
+                        {branch.street} {branch.house_number}
                       </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <p className="text-sm text-muted-foreground">
+                        {branch.zip_code} {branch.city}, {branch.country}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Store: {stores.find(s => s.id === branch.store_id)?.store_name || 'Unknown'}
+                      </p>
+                      {branch.latitude && branch.longitude && (
+                        <p className="text-sm text-muted-foreground">
+                          Location: {branch.latitude}, {branch.longitude}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <BranchTableView
+              branches={paginatedBranches}
+              stores={stores}
+              retailers={retailers}
+              storeId={storeIdFromUrl || undefined}
+              onEditBranch={(branch) => {
+                setSelectedBranch(branch);
+                setIsBranchDialogOpen(true);
+              }}
+              onDeleteBranch={handleDeleteBranch}
+            />
+          )}
 
           {renderPagination(filteredBranches.length)}
         </TabsContent>
 
-        <TabsContent value="crawlers" className="space-y-4">
+        <TabsContent value="tasks" className="space-y-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
             <div className="relative w-full md:w-72">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -631,6 +915,16 @@ export default function Admin() {
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setIsTaskDetailsOpen(true);
+                        }}
+                      >
+                        Details
+                      </Button>
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => {
                           setSelectedTask(task);
@@ -670,6 +964,16 @@ export default function Admin() {
                         Last Run: {new Date(task.last_run).toLocaleString()}
                       </p>
                     )}
+                    <div className="pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleRunTask(task)}
+                      >
+                        <Play className="mr-2 h-4 w-4" /> Run Task
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -721,6 +1025,13 @@ export default function Admin() {
           setIsTaskDialogOpen(false);
           fetchTasks();
         }}
+      />
+      
+      <TaskDetailsDialog
+        open={isTaskDetailsOpen}
+        onOpenChange={setIsTaskDetailsOpen}
+        task={selectedTask}
+        stores={stores}
       />
     </div>
   );
