@@ -284,22 +284,39 @@ export default function Admin() {
     }
   };
 
-  // Filtering functions
-  const applyLocationFilters = (item: { country: string; city?: string; }) => {
-    const matchesCountry = !countryFilter || item.country.toLowerCase().includes(countryFilter.toLowerCase());
-    const matchesCity = !cityFilter || (item.city?.toLowerCase().includes(cityFilter.toLowerCase()) ?? false);
-    // State filter is applied differently for branches and stores/retailers
-    return matchesCountry && matchesCity;
+  // Filtering functions for different entity types
+  const applyRetailerLocationFilters = (retailer: Retailer) => {
+    // Check if any of the countries match the filter
+    return !countryFilter || 
+      retailer.countries.some(country => 
+        country.toLowerCase().includes(countryFilter.toLowerCase())
+      );
+  };
+
+  const applyStoreLocationFilters = (store: Store) => {
+    const matchesCountry = !countryFilter || 
+      store.country.toLowerCase().includes(countryFilter.toLowerCase());
+    return matchesCountry;
+  };
+
+  const applyBranchLocationFilters = (branch: StoreBranch) => {
+    const matchesCountry = !countryFilter || 
+      branch.country.toLowerCase().includes(countryFilter.toLowerCase());
+    const matchesCity = !cityFilter || 
+      branch.city.toLowerCase().includes(cityFilter.toLowerCase());
+    const matchesState = !stateFilter || 
+      branch.street.toLowerCase().includes(stateFilter.toLowerCase());
+    return matchesCountry && matchesCity && matchesState;
   };
 
   const filteredRetailers = retailers
     .filter(retailer => retailerFilter === "" || retailer.name.toLowerCase().includes(retailerFilter.toLowerCase()))
-    .filter(applyLocationFilters);
+    .filter(applyRetailerLocationFilters);
 
   const filteredStores = stores
     .filter(store => storeFilter === "" || store.store_name.toLowerCase().includes(storeFilter.toLowerCase()))
     .filter(store => !retailerIdFromUrl || store.retailer_id === retailerIdFromUrl)
-    .filter(applyLocationFilters);
+    .filter(applyStoreLocationFilters);
 
   const filteredBranches = branches
     .filter(branch => branchFilter === "" || 
@@ -308,12 +325,7 @@ export default function Admin() {
       branch.branch_id.toLowerCase().includes(branchFilter.toLowerCase())
     )
     .filter(branch => !storeIdFromUrl || branch.store_id === storeIdFromUrl)
-    .filter(branch => {
-      if (!stateFilter) return true;
-      // In this example we use street as a proxy for "state/region" for filtering
-      return branch.street.toLowerCase().includes(stateFilter.toLowerCase());
-    })
-    .filter(applyLocationFilters);
+    .filter(applyBranchLocationFilters);
 
   const filteredTasks = tasks
     .filter(task => taskFilter === "" || 
