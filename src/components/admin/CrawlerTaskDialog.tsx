@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CrawlerTask, Store, ScraperType } from "@/types/admin";
+import { CrawlerTask, Store, ScraperType, TaskStatus } from "@/types/admin";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -27,8 +27,9 @@ export default function CrawlerTaskDialog({
   const [formData, setFormData] = useState<Partial<CrawlerTask>>(
     task || {
       store_id: "",
-      scraper_type: "INDEXER",
-      status: "PENDING",
+      scraper_type: "INDEXER" as ScraperType,
+      url_pattern: "",
+      status: "PENDING" as TaskStatus,
     }
   );
 
@@ -99,9 +100,9 @@ export default function CrawlerTaskDialog({
                 <SelectValue placeholder="Select scraper type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="INDEXER">INDEXER</SelectItem>
-                <SelectItem value="SCRAPE_PRODUCT_CSS">SCRAPE_PRODUCT_CSS</SelectItem>
-                <SelectItem value="SCRAPE_PRODUCT_LLM">SCRAPE_PRODUCT_LLM</SelectItem>
+                <SelectItem value="INDEXER">Indexer</SelectItem>
+                <SelectItem value="SCRAPE_PRODUCT_CSS">Scrape Product (CSS)</SelectItem>
+                <SelectItem value="SCRAPE_PRODUCT_LLM">Scrape Product (LLM)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -110,59 +111,30 @@ export default function CrawlerTaskDialog({
             <Label htmlFor="url_pattern">URL Pattern</Label>
             <Input
               id="url_pattern"
+              type="url"
               value={formData.url_pattern}
               onChange={(e) => setFormData({ ...formData, url_pattern: e.target.value })}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sitemap_url">Sitemap URL</Label>
-            <Input
-              id="sitemap_url"
-              value={formData.sitemap_url}
-              onChange={(e) => setFormData({ ...formData, sitemap_url: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="index_urls">Index URLs (comma-separated)</Label>
-            <Input
-              id="index_urls"
-              value={formData.index_urls?.join(', ')}
-              onChange={(e) => setFormData({
-                ...formData,
-                index_urls: e.target.value.split(',').map(url => url.trim()).filter(Boolean)
-              })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="schedule_times">Schedule Times (comma-separated)</Label>
-            <Input
-              id="schedule_times"
-              value={formData.schedule_times?.join(', ')}
-              onChange={(e) => setFormData({
-                ...formData,
-                schedule_times: e.target.value.split(',').map(time => time.trim()).filter(Boolean)
-              })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="selectors">CSS Selectors (JSON)</Label>
-            <Input
-              id="selectors"
-              value={formData.selectors ? JSON.stringify(formData.selectors) : ''}
-              onChange={(e) => {
-                try {
-                  const parsed = JSON.parse(e.target.value);
-                  setFormData({ ...formData, selectors: parsed });
-                } catch {
-                  // Invalid JSON, ignore
-                }
-              }}
-              placeholder='{"price": ".price-tag", "name": ".product-title"}'
-            />
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: TaskStatus) =>
+                setFormData({ ...formData, status: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="RUNNING">Running</SelectItem>
+                <SelectItem value="SUCCESS">Success</SelectItem>
+                <SelectItem value="FAILURE">Failure</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2">
