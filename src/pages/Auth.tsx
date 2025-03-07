@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { registerUser, loginUser } from "@/services/authApi";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -21,18 +21,10 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
+        await registerUser({ email, password });
         toast.success("Check your email for the confirmation link!");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
+        await loginUser({ email, password });
         navigate("/");
         toast.success("Successfully logged in!");
       }

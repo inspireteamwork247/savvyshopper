@@ -1,74 +1,78 @@
 
-import { API_CONFIG } from '../config/api';
+import { apiRequest } from './apiClient';
+import { supabase } from '@/lib/supabase';
 
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
+interface AuthResponse {
   token: string;
   user: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
   };
 }
 
-class AuthAPI {
-  private static BASE_URL = `${API_CONFIG.BASE_URL}/api/v1/auth`;
-
-  async register(request: RegisterRequest): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${AuthAPI.BASE_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const data: AuthResponse = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  }
-
-  async login(request: LoginRequest): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${AuthAPI.BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data: AuthResponse = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  }
+interface AuthCredentials {
+  email: string;
+  password: string;
 }
 
-export const authApi = new AuthAPI();
+// Register a new user
+export const registerUser = async (credentials: AuthCredentials): Promise<AuthResponse> => {
+  try {
+    // First register with our Java API
+    const apiResponse = await apiRequest<AuthResponse>(
+      'auth/register',
+      'POST',
+      credentials,
+      { requiresAuth: false }
+    );
+    
+    // Then sign up with Supabase for client-side auth
+    await supabase.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+    });
+    
+    return apiResponse;
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
+};
+
+// Login user
+export const loginUser = async (credentials: AuthCredentials): Promise<AuthResponse> => {
+  try {
+    // First login with our Java API
+    const apiResponse = await apiRequest<AuthResponse>(
+      'auth/login',
+      'POST',
+      credentials,
+      { requiresAuth: false }
+    );
+    
+    // Then sign in with Supabase for client-side auth
+    await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+    
+    return apiResponse;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+// Logout user
+export const logoutUser = async (): Promise<void> => {
+  try {
+    // Logout from our Java API
+    await apiRequest<void>('auth/logout', 'POST');
+    
+    // Then sign out from Supabase
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error('Logout error:', error);
+    throw error;
+  }
+};

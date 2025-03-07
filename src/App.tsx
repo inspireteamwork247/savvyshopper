@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Deals from "./pages/Deals";
 import Auth from "./pages/Auth";
+import Tasks from "./pages/Tasks";
 import { AnimatePresence } from "framer-motion";
 import BottomNav from "./components/navigation/BottomNav";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -30,7 +31,7 @@ const App = () => (
                 <Route path="/deals" element={<Deals />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
-                <Route path="/tasks" element={<Index />} /> {/* Temporarily mapping to Index until Tasks page is created */}
+                <Route path="/tasks" element={<Tasks />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

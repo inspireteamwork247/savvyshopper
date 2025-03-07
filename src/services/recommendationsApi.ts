@@ -1,4 +1,6 @@
 
+import { apiRequest } from './apiClient';
+
 interface StoreRecommendation {
   store: string;
   total_price: number;
@@ -15,19 +17,11 @@ interface RecommendationRequest {
 
 export const getStoreRecommendations = async (request: RecommendationRequest): Promise<StoreRecommendation[]> => {
   try {
-    const response = await fetch('http://localhost:8080/api/recommendations/best-stores', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch store recommendations');
-    }
-
-    return await response.json();
+    return await apiRequest<StoreRecommendation[]>(
+      'recommendations/best-stores',
+      'POST',
+      request
+    );
   } catch (error) {
     console.error('Error fetching store recommendations:', error);
     throw error;
