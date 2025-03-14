@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Retailer } from "@/types/admin";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, RefreshCw, Grid, List, Play } from "lucide-react";
 import RetailerDialog from "@/components/admin/RetailerDialog";
@@ -32,6 +30,11 @@ import BranchTableView from "@/components/admin/BranchTableView";
 import CrawlerTaskTableView from "@/components/admin/CrawlerTaskTableView";
 import TaskDetailsDialog from "@/components/admin/TaskDetailsDialog";
 import LocationFilter from "@/components/admin/LocationFilter";
+import { getRetailers, deleteRetailer } from "@/services/retailerApi";
+import { getStores, deleteStore } from "@/services/storeApi";
+import { getBranches, deleteBranch } from "@/services/branchApi";
+import { getTasks, deleteTask, runTask } from "@/services/taskApi";
+import { getDashboardStats } from "@/services/dashboardApi";
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -112,12 +115,7 @@ export default function Admin() {
   const fetchRetailers = async () => {
     try {
       setIsRetailersLoading(true);
-      const { data, error } = await supabase
-        .from('retailers')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
+      const data = await getRetailers();
       setRetailers(data);
     } catch (error: any) {
       toast.error('Failed to fetch retailers: ' + error.message);
@@ -129,12 +127,7 @@ export default function Admin() {
   const fetchStores = async () => {
     try {
       setIsStoresLoading(true);
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .order('store_name');
-      
-      if (error) throw error;
+      const data = await getStores();
       setStores(data);
     } catch (error: any) {
       toast.error('Failed to fetch stores: ' + error.message);
@@ -146,12 +139,7 @@ export default function Admin() {
   const fetchBranches = async () => {
     try {
       setIsBranchesLoading(true);
-      const { data, error } = await supabase
-        .from('store_branches')
-        .select('*')
-        .order('city');
-      
-      if (error) throw error;
+      const data = await getBranches();
       setBranches(data);
     } catch (error: any) {
       toast.error('Failed to fetch branches: ' + error.message);
@@ -163,12 +151,7 @@ export default function Admin() {
   const fetchTasks = async () => {
     try {
       setIsTasksLoading(true);
-      const { data, error } = await supabase
-        .from('crawler_tasks')
-        .select('*')
-        .order('created_at');
-      
-      if (error) throw error;
+      const data = await getTasks();
       setTasks(data);
     } catch (error: any) {
       toast.error('Failed to fetch tasks: ' + error.message);
@@ -179,13 +162,7 @@ export default function Admin() {
 
   const handleDeleteRetailer = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('retailers')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      await deleteRetailer(id);
       setRetailers(retailers.filter(r => r.id !== id));
       toast.success('Retailer deleted successfully');
     } catch (error: any) {
@@ -195,12 +172,7 @@ export default function Admin() {
 
   const handleDeleteStore = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('stores')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      await deleteStore(id);
       setStores(stores.filter(s => s.id !== id));
       toast.success('Store deleted successfully');
     } catch (error: any) {
@@ -210,12 +182,7 @@ export default function Admin() {
 
   const handleDeleteBranch = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('store_branches')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      await deleteBranch(id);
       setBranches(branches.filter(b => b.id !== id));
       toast.success('Branch deleted successfully');
     } catch (error: any) {
@@ -225,12 +192,7 @@ export default function Admin() {
 
   const handleDeleteTask = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('crawler_tasks')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      await deleteTask(id);
       setTasks(tasks.filter(t => t.id !== id));
       toast.success('Task deleted successfully');
     } catch (error: any) {
@@ -241,50 +203,45 @@ export default function Admin() {
   const handleRunTask = async (task: CrawlerTask) => {
     try {
       toast.info(`Running task for ${stores.find(s => s.id === task.store_id)?.store_name || 'Unknown store'}`);
-      // In a real implementation, this would trigger an actual crawler task
-      const { error } = await supabase
-        .from('crawler_tasks')
-        .update({ 
-          status: 'RUNNING',
-          last_run: new Date().toISOString()
-        })
-        .eq('id', task.id);
       
-      if (error) throw error;
+      const updatedTask = await runTask(task.id);
       
       // Update local state
       setTasks(tasks.map(t => 
-        t.id === task.id ? { ...t, status: 'RUNNING', last_run: new Date().toISOString() } : t
+        t.id === task.id ? updatedTask : t
       ));
       
-      // Simulate task completion after 3 seconds
-      setTimeout(async () => {
-        const { error } = await supabase
-          .from('crawler_tasks')
-          .update({ 
-            status: 'SUCCESS'
-          })
-          .eq('id', task.id);
-        
-        if (error) {
-          console.error('Error updating task status', error);
-          return;
+      toast.success(`Task started successfully`);
+      
+      // Poll for task completion
+      const checkStatus = setInterval(async () => {
+        try {
+          const refreshedTasks = await getTasks();
+          const currentTask = refreshedTasks.find(t => t.id === task.id);
+          
+          if (currentTask && currentTask.status !== 'RUNNING') {
+            clearInterval(checkStatus);
+            setTasks(prevTasks => prevTasks.map(t => 
+              t.id === task.id ? currentTask : t
+            ));
+            toast.success(`Task completed with status: ${currentTask.status}`);
+          }
+        } catch (error) {
+          clearInterval(checkStatus);
+          console.error('Error checking task status:', error);
         }
-        
-        // Update local state
-        setTasks(tasks.map(t => 
-          t.id === task.id ? { ...t, status: 'SUCCESS' } : t
-        ));
-        
-        toast.success(`Task completed successfully`);
-      }, 3000);
+      }, 5000); // Check every 5 seconds
+      
+      // Stop checking after 2 minutes if task hasn't completed
+      setTimeout(() => {
+        clearInterval(checkStatus);
+      }, 120000);
       
     } catch (error: any) {
       toast.error('Failed to run task: ' + error.message);
     }
   };
 
-  // Filtering functions for different entity types
   const applyRetailerLocationFilters = (retailer: Retailer) => {
     // Check if any of the countries match the filter
     return !countryFilter || 
@@ -339,7 +296,6 @@ export default function Admin() {
       return store?.retailer_id === retailerIdFromUrl;
     });
 
-  // Pagination logic
   const paginateData = <T,>(data: T[], page: number, itemsPerPage: number) => {
     const startIndex = (page - 1) * itemsPerPage;
     return data.slice(startIndex, startIndex + itemsPerPage);
@@ -406,7 +362,6 @@ export default function Admin() {
     return null;
   }
   
-  // Determine if we should show location filters on the current tab
   const showLocationFilters = ['retailers', 'stores', 'branches'].includes(activeTab);
 
   return (

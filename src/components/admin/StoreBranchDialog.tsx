@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StoreBranch, Store } from "@/types/admin";
-import { supabase } from "@/lib/supabase";
+import { createBranch, updateBranch } from "@/services/branchApi";
 import { toast } from "sonner";
 
 interface StoreBranchDialogProps {
@@ -49,19 +48,10 @@ export default function StoreBranchDialog({
       }
 
       if (branch) {
-        const { error } = await supabase
-          .from('store_branches')
-          .update(formData)
-          .eq('id', branch.id);
-        
-        if (error) throw error;
+        await updateBranch(branch.id, formData);
         toast.success('Branch updated successfully');
       } else {
-        const { error } = await supabase
-          .from('store_branches')
-          .insert([formData]);
-        
-        if (error) throw error;
+        await createBranch(formData);
         toast.success('Branch created successfully');
       }
       

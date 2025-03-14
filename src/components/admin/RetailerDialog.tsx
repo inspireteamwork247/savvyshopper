@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Retailer, IntegrationType } from "@/types/admin";
-import { supabase } from "@/lib/supabase";
+import { createRetailer, updateRetailer } from "@/services/retailerApi";
 import { toast } from "sonner";
 
 interface RetailerDialogProps {
@@ -36,19 +35,10 @@ export default function RetailerDialog({
     
     try {
       if (retailer) {
-        const { error } = await supabase
-          .from('retailers')
-          .update(formData)
-          .eq('id', retailer.id);
-        
-        if (error) throw error;
+        await updateRetailer(retailer.id, formData);
         toast.success('Retailer updated successfully');
       } else {
-        const { error } = await supabase
-          .from('retailers')
-          .insert([formData]);
-        
-        if (error) throw error;
+        await createRetailer(formData);
         toast.success('Retailer created successfully');
       }
       

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Store, Retailer } from "@/types/admin";
-import { supabase } from "@/lib/supabase";
+import { createStore, updateStore } from "@/services/storeApi";
 import { toast } from "sonner";
 
 interface StoreDialogProps {
@@ -37,19 +36,10 @@ export default function StoreDialog({
     
     try {
       if (store) {
-        const { error } = await supabase
-          .from('stores')
-          .update(formData)
-          .eq('id', store.id);
-        
-        if (error) throw error;
+        await updateStore(store.id, formData);
         toast.success('Store updated successfully');
       } else {
-        const { error } = await supabase
-          .from('stores')
-          .insert([formData]);
-        
-        if (error) throw error;
+        await createStore(formData);
         toast.success('Store created successfully');
       }
       

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CrawlerTask, Store, ScraperType, TaskStatus } from "@/types/admin";
-import { supabase } from "@/lib/supabase";
+import { createTask, updateTask } from "@/services/taskApi";
 import { toast } from "sonner";
 
 interface CrawlerTaskDialogProps {
@@ -38,19 +37,10 @@ export default function CrawlerTaskDialog({
     
     try {
       if (task) {
-        const { error } = await supabase
-          .from('crawler_tasks')
-          .update(formData)
-          .eq('id', task.id);
-        
-        if (error) throw error;
+        await updateTask(task.id, formData);
         toast.success('Task updated successfully');
       } else {
-        const { error } = await supabase
-          .from('crawler_tasks')
-          .insert([formData]);
-        
-        if (error) throw error;
+        await createTask(formData);
         toast.success('Task created successfully');
       }
       
