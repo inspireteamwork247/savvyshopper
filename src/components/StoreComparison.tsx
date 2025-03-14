@@ -1,5 +1,7 @@
 
 import { Store, DollarSign, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { apiRequest } from '@/services/apiClient';
 
 interface StorePrice {
   storeName: string;
@@ -9,12 +11,62 @@ interface StorePrice {
 
 interface StorePricesProps {
   itemName: string;
-  stores: StorePrice[];
+  stores?: StorePrice[];
 }
 
-export const StoreComparison = ({ itemName, stores }: StorePricesProps) => {
+interface PriceComparisonResponse {
+  stores: Array<{
+    name: string;
+    price: number;
+    distance_miles: string;
+  }>;
+}
+
+export const StoreComparison = ({ itemName, stores: initialStores }: StorePricesProps) => {
+  const [stores, setStores] = useState<StorePrice[]>(initialStores || []);
+  const [loading, setLoading] = useState<boolean>(!initialStores);
+
+  useEffect(() => {
+    const fetchStoresComparison = async () => {
+      if (initialStores) return;
+      
+      try {
+        setLoading(true);
+        const data = await apiRequest<PriceComparisonResponse>(
+          `products/compare-prices?name=${encodeURIComponent(itemName)}`
+        );
+        
+        const formattedStores = data.stores.map(store => ({
+          storeName: store.name,
+          price: store.price,
+          distance: store.distance_miles
+        }));
+        
+        setStores(formattedStores);
+      } catch (error) {
+        console.error("Failed to fetch price comparison:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStoresComparison();
+  }, [itemName, initialStores]);
+
   const sortedStores = [...stores].sort((a, b) => a.price - b.price);
   const lowestPrice = sortedStores[0]?.price;
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
+        <div className="flex items-center gap-2 mb-4">
+          <Store className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold">Price Comparison</h2>
+        </div>
+        <p className="text-center py-4">Loading price comparison...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">

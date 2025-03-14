@@ -1,0 +1,1806 @@
+
+{
+  "info": {
+    "_postman_id": "8f4a9d9e-8c53-4b1c-9d82-9e9a732a3b5f",
+    "name": "SavvyShopper API",
+    "description": "Complete API collection for the SavvyShopper application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"securePassword123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"securePassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout the current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication-related endpoints"
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "stats"]
+            },
+            "description": "Get dashboard statistics"
+          },
+          "response": []
+        }
+      ],
+      "description": "Dashboard-related endpoints"
+    },
+    {
+      "name": "Retailers",
+      "item": [
+        {
+          "name": "Get All Retailers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/retailers",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers"]
+            },
+            "description": "Get all retailers"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Retailer by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/retailers/{{retailerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers", "{{retailerId}}"]
+            },
+            "description": "Get a specific retailer by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Retailer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Retailer\",\n    \"website\": \"https://example.com\",\n    \"country\": \"United States\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/retailers",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers"]
+            },
+            "description": "Create a new retailer"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Retailer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Retailer\",\n    \"website\": \"https://example-updated.com\",\n    \"country\": \"Canada\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/retailers/{{retailerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers", "{{retailerId}}"]
+            },
+            "description": "Update an existing retailer"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Retailer",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/retailers/{{retailerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers", "{{retailerId}}"]
+            },
+            "description": "Delete a retailer"
+          },
+          "response": []
+        }
+      ],
+      "description": "Retailer-related endpoints"
+    },
+    {
+      "name": "Stores",
+      "item": [
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Get all stores"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stores by Retailer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/retailers/{{retailerId}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["retailers", "{{retailerId}}", "stores"]
+            },
+            "description": "Get all stores for a specific retailer"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores/{{storeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", "{{storeId}}"]
+            },
+            "description": "Get a specific store by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Store\",\n    \"retailerId\": \"{{retailerId}}\",\n    \"website\": \"https://store-example.com\",\n    \"country\": \"United States\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Create a new store"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Store\",\n    \"retailerId\": \"{{retailerId}}\",\n    \"website\": \"https://store-updated.com\",\n    \"country\": \"Canada\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stores/{{storeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", "{{storeId}}"]
+            },
+            "description": "Update an existing store"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Store",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores/{{storeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", "{{storeId}}"]
+            },
+            "description": "Delete a store"
+          },
+          "response": []
+        }
+      ],
+      "description": "Store-related endpoints"
+    },
+    {
+      "name": "Branches",
+      "item": [
+        {
+          "name": "Get All Branches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["branches"]
+            },
+            "description": "Get all branches"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Branches by Store",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores/{{storeId}}/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", "{{storeId}}", "branches"]
+            },
+            "description": "Get all branches for a specific store"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Branch by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/branches/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["branches", "{{branchId}}"]
+            },
+            "description": "Get a specific branch by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Branch\",\n    \"storeId\": \"{{storeId}}\",\n    \"address\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"United States\",\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["branches"]
+            },
+            "description": "Create a new branch"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Branch",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Branch\",\n    \"storeId\": \"{{storeId}}\",\n    \"address\": \"456 Park Ave\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10022\",\n    \"country\": \"United States\",\n    \"latitude\": 40.7592,\n    \"longitude\": -73.9672,\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/branches/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["branches", "{{branchId}}"]
+            },
+            "description": "Update an existing branch"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Branch",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/branches/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["branches", "{{branchId}}"]
+            },
+            "description": "Delete a branch"
+          },
+          "response": []
+        }
+      ],
+      "description": "Branch-related endpoints"
+    },
+    {
+      "name": "Crawler Tasks",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            },
+            "description": "Get all crawler tasks"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            },
+            "description": "Get a specific crawler task by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"scraperType\": \"PRODUCTS\",\n    \"cronSchedule\": \"0 0 * * *\",\n    \"isActive\": true,\n    \"config\": {\n        \"baseUrl\": \"https://example.com\",\n        \"productSelector\": \".product-item\",\n        \"nameSelector\": \".product-name\",\n        \"priceSelector\": \".product-price\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            },
+            "description": "Create a new crawler task"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"scraperType\": \"PRODUCTS\",\n    \"cronSchedule\": \"0 0 * * *\",\n    \"isActive\": true,\n    \"config\": {\n        \"baseUrl\": \"https://example-updated.com\",\n        \"productSelector\": \".product-grid .item\",\n        \"nameSelector\": \".name\",\n        \"priceSelector\": \".price\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            },
+            "description": "Update an existing crawler task"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            },
+            "description": "Delete a crawler task"
+          },
+          "response": []
+        },
+        {
+          "name": "Run Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/run",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "run"]
+            },
+            "description": "Run a crawler task immediately"
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "pause"]
+            },
+            "description": "Pause a crawler task"
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "resume"]
+            },
+            "description": "Resume a paused crawler task"
+          },
+          "response": []
+        }
+      ],
+      "description": "Crawler task-related endpoints"
+    },
+    {
+      "name": "Shopping Lists",
+      "item": [
+        {
+          "name": "Get User Shopping Lists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists"]
+            },
+            "description": "Get all shopping lists for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shopping List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}"]
+            },
+            "description": "Get a specific shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Shopping List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Weekly Groceries\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists"]
+            },
+            "description": "Create a new shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Shopping List",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"{{listId}}\",\n    \"name\": \"Updated Grocery List\",\n    \"items\": [\n        {\n            \"id\": \"item1\",\n            \"name\": \"milk\",\n            \"quantity\": \"1 gallon\",\n            \"labels\": [\"dairy\", \"organic\"]\n        },\n        {\n            \"id\": \"item2\",\n            \"name\": \"bread\",\n            \"quantity\": \"1 loaf\",\n            \"labels\": [\"bakery\", \"whole grain\"]\n        }\n    ],\n    \"created\": \"2023-01-01T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}"]
+            },
+            "description": "Update an existing shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Shopping List",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}"]
+            },
+            "description": "Delete a shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"eggs\",\n    \"quantity\": \"1 dozen\",\n    \"labels\": [\"dairy\", \"free-range\"],\n    \"brand\": \"Happy Farms\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}", "items"]
+            },
+            "description": "Add an item to a shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Item from List",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}", "items", "{{itemId}}"]
+            },
+            "description": "Remove an item from a shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Share Shopping List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"friend@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/shopping-lists/{{listId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["shopping-lists", "{{listId}}", "share"]
+            },
+            "description": "Share a shopping list with another user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Shopping list-related endpoints"
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "Get Store Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"products\": [\"milk 1 gallon\", \"bread 1 loaf\", \"eggs 1 dozen\"],\n    \"zip_code\": \"10001\",\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"labels\": [\"organic\", \"dairy\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/best-stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "best-stores"]
+            },
+            "description": "Get store recommendations for a shopping list"
+          },
+          "response": []
+        }
+      ],
+      "description": "Recommendation-related endpoints"
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Compare Product Prices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/compare-prices?name=milk",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "compare-prices"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "milk"
+                }
+              ]
+            },
+            "description": "Compare prices for a product across different stores"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Price History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/items/{{itemId}}/price-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["items", "{{itemId}}", "price-history"]
+            },
+            "description": "Get price history for a specific product"
+          },
+          "response": []
+        }
+      ],
+      "description": "Product-related endpoints"
+    },
+    {
+      "name": "Deals",
+      "item": [
+        {
+          "name": "Get All Deals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals"]
+            },
+            "description": "Get all deals"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Deals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "featured"]
+            },
+            "description": "Get featured deals"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deals by Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals/category/{{category}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "category", "{{category}}"]
+            },
+            "description": "Get deals by category"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deals by Store",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores/{{storeId}}/deals",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", "{{storeId}}", "deals"]
+            },
+            "description": "Get deals from a specific store"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deal by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals/{{dealId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "{{dealId}}"]
+            },
+            "description": "Get a specific deal by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Deals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals/search?q={{searchQuery}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{searchQuery}}"
+                }
+              ]
+            },
+            "description": "Search for deals"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deal Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deals/insights",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "insights"]
+            },
+            "description": "Get deal insights with patterns and recommendations"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Deal Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"item_id\": \"{{itemId}}\",\n    \"notification_day\": \"Wednesday\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/deals/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["deals", "alerts"]
+            },
+            "description": "Create a deal alert for a specific item"
+          },
+          "response": []
+        }
+      ],
+      "description": "Deal-related endpoints"
+    },
+    {
+      "name": "Price Alerts",
+      "item": [
+        {
+          "name": "Subscribe to Price Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"item_id\": \"{{itemId}}\",\n    \"target_price\": 2.99,\n    \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/price-alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["price-alerts"]
+            },
+            "description": "Subscribe to price alert for a product"
+          },
+          "response": []
+        },
+        {
+          "name": "Unsubscribe from Price Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"item_id\": \"{{itemId}}\",\n    \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/price-alerts/unsubscribe",
+              "host": ["{{baseUrl}}"],
+              "path": ["price-alerts", "unsubscribe"]
+            },
+            "description": "Unsubscribe from price alert for a product"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Price Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/price-alerts?email={{email}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["price-alerts"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{email}}"
+                }
+              ]
+            },
+            "description": "Get all price alerts for a specific user email"
+          },
+          "response": []
+        }
+      ],
+      "description": "Price alert-related endpoints"
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Get Likes Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/likes/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "likes", "count"]
+            },
+            "description": "Get likes count for a deal"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Like",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/likes/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "likes", "toggle"]
+            },
+            "description": "Toggle like for a deal"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "comments"]
+            },
+            "description": "Get comments for a deal"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"This is a great deal!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "comments"]
+            },
+            "description": "Add a comment to a deal"
+          },
+          "response": []
+        },
+        {
+          "name": "Report Deal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reason\": \"Incorrect price information\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "report"]
+            },
+            "description": "Report a deal as incorrect or spam"
+          },
+          "response": []
+        },
+        {
+          "name": "Share Deal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"friend@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/social/deals/{{dealId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["social", "deals", "{{dealId}}", "share"]
+            },
+            "description": "Share a deal with a friend via email"
+          },
+          "response": []
+        }
+      ],
+      "description": "Social interaction endpoints for deals"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1/savvyshopper",
+      "type": "string",
+      "description": "Base URL for the API (development environment)"
+    },
+    {
+      "key": "prodUrl",
+      "value": "https://api.inspirecreations.it.com/api/v1/savvyshopper",
+      "type": "string",
+      "description": "Base URL for the API (production environment)"
+    },
+    {
+      "key": "token",
+      "value": "your-jwt-token-here",
+      "type": "string",
+      "description": "Authentication token"
+    },
+    {
+      "key": "retailerId",
+      "value": "sample-retailer-id",
+      "type": "string"
+    },
+    {
+      "key": "storeId",
+      "value": "sample-store-id",
+      "type": "string"
+    },
+    {
+      "key": "branchId",
+      "value": "sample-branch-id",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "sample-task-id",
+      "type": "string"
+    },
+    {
+      "key": "listId",
+      "value": "sample-list-id",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "sample-item-id",
+      "type": "string"
+    },
+    {
+      "key": "dealId",
+      "value": "sample-deal-id",
+      "type": "string"
+    },
+    {
+      "key": "category",
+      "value": "grocery",
+      "type": "string"
+    },
+    {
+      "key": "searchQuery",
+      "value": "milk",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "user@example.com",
+      "type": "string"
+    }
+  ]
+}
