@@ -2,14 +2,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { labelCategories } from './constants';
 
 interface LabelSelectProps {
   selectedLabels: string[];
@@ -22,24 +14,20 @@ export const LabelSelect = ({
   onLabelSelect,
   onRemoveLabel
 }: LabelSelectProps) => {
+  const commonLabels = ['Essential', 'Urgent', 'Optional', 'Bulk'];
+
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        {Object.entries(labelCategories).map(([category, labels]) => (
-          <div key={category}>
-            <Select onValueChange={onLabelSelect}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={`Select ${category}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {labels.map((label) => (
-                  <SelectItem key={label} value={label}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex flex-wrap gap-2">
+        {commonLabels.map(label => (
+          <Badge 
+            key={label} 
+            variant="outline" 
+            className="cursor-pointer hover:bg-secondary"
+            onClick={() => !selectedLabels.includes(label) && onLabelSelect(label)}
+          >
+            {label}
+          </Badge>
         ))}
       </div>
 

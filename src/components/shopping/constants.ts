@@ -20,10 +20,3 @@ export const quantities = {
   'Rice': ['500g', '1kg', '2kg', '5kg'],
   'default': ['1', '2', '3', '4', '5']
 };
-
-export const labelCategories = {
-  'Dietary': ['Vegan', 'Vegetarian', 'Keto', 'Halal', 'Kosher', 'Gluten-Free'],
-  'Allergies': ['Contains Nuts', 'Contains Soy', 'Contains Dairy', 'Contains Eggs'],
-  'Health': ['Sugar Free', 'Low Fat', 'Low Sodium', 'High Protein'],
-  'Packaging': ['Plastic Free', 'Recyclable', 'Biodegradable']
-};

@@ -1,22 +1,17 @@
+
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Save } from "lucide-react";
 import { toast } from "sonner";
-import { labelCategories } from "@/components/shopping/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Save } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-interface UserPreferences {
-  preferred_stores: string[];
-  loyalty_programs: Record<string, string>;
-  preferred_product_labels: string[];
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getUserPreferences, updateUserPreferences, UserPreferences } from "@/services/userPreferencesApi";
 
 const commonStores = [
   "Lidl",
@@ -29,9 +24,28 @@ const commonStores = [
   "Real",
 ];
 
+const commonLabels = [
+  "Essential",
+  "Urgent",
+  "Optional",
+  "Bulk",
+  "Organic",
+  "Sustainable",
+  "Local",
+  "Fair Trade",
+  "Premium",
+  "Budget",
+];
+
 const Profile = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [newStore, setNewStore] = useState("");
+  const [newLoyaltyProgram, setNewLoyaltyProgram] = useState("");
+  const [selectedStore, setSelectedStore] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,50 +53,68 @@ const Profile = () => {
     }
   }, [user, loading, navigate]);
 
-  const [preferences, setPreferences] = useState<UserPreferences>(() => {
-    const saved = localStorage.getItem('userPreferences');
-    return saved ? JSON.parse(saved) : {
-      preferred_stores: [],
-      loyalty_programs: {},
-      preferred_product_labels: [],
-    };
+  const { data: preferences, isLoading } = useQuery({
+    queryKey: ['userPreferences'],
+    queryFn: getUserPreferences,
+    enabled: !!user,
+    onError: (error) => {
+      console.error('Error fetching preferences:', error);
+      toast.error("Failed to load your preferences");
+    }
   });
 
-  const [newStore, setNewStore] = useState("");
-  const [newLoyaltyProgram, setNewLoyaltyProgram] = useState("");
-  const [selectedStore, setSelectedStore] = useState("");
+  const updatePreferencesMutation = useMutation({
+    mutationFn: updateUserPreferences,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userPreferences'] });
+      toast.success("Preferences saved successfully");
+      setIsSaving(false);
+    },
+    onError: (error) => {
+      console.error('Error updating preferences:', error);
+      toast.error("Failed to save preferences");
+      setIsSaving(false);
+    }
+  });
 
-  useEffect(() => {
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-  }, [preferences]);
+  const savePreferences = (updatedPrefs: Partial<UserPreferences>) => {
+    if (!user) return;
+    setIsSaving(true);
+    updatePreferencesMutation.mutate(updatedPrefs);
+  };
 
   const addStore = () => {
     if (!newStore.trim()) {
       toast.error("Please enter a store name");
       return;
     }
+    
+    if (!preferences) return;
+    
     if (preferences.preferred_stores.includes(newStore.trim())) {
       toast.error("Store already added");
       return;
     }
-    setPreferences(prev => ({
-      ...prev,
-      preferred_stores: [...prev.preferred_stores, newStore.trim()]
-    }));
+    
+    const updatedStores = [...preferences.preferred_stores, newStore.trim()];
+    savePreferences({ preferred_stores: updatedStores });
     setNewStore("");
     setSelectedStore(newStore.trim());
     toast.success("Store added");
   };
 
   const removeStore = (store: string) => {
-    setPreferences(prev => {
-      const { [store]: _, ...remainingPrograms } = prev.loyalty_programs;
-      return {
-        ...prev,
-        preferred_stores: prev.preferred_stores.filter(s => s !== store),
-        loyalty_programs: remainingPrograms
-      };
+    if (!preferences) return;
+    
+    const updatedStores = preferences.preferred_stores.filter(s => s !== store);
+    const updatedPrograms = { ...preferences.loyalty_programs };
+    delete updatedPrograms[store];
+    
+    savePreferences({
+      preferred_stores: updatedStores,
+      loyalty_programs: updatedPrograms
     });
+    
     toast.success("Store removed");
   };
 
@@ -91,49 +123,50 @@ const Profile = () => {
       toast.error("Please select a store first");
       return;
     }
+    
     if (!newLoyaltyProgram.trim()) {
       toast.error("Please enter a loyalty program name");
       return;
     }
-    setPreferences(prev => ({
-      ...prev,
-      loyalty_programs: {
-        ...prev.loyalty_programs,
-        [selectedStore]: newLoyaltyProgram.trim()
-      }
-    }));
+    
+    if (!preferences) return;
+    
+    const updatedPrograms = {
+      ...preferences.loyalty_programs,
+      [selectedStore]: newLoyaltyProgram.trim()
+    };
+    
+    savePreferences({ loyalty_programs: updatedPrograms });
     setNewLoyaltyProgram("");
     toast.success("Loyalty program added");
   };
 
   const removeLoyaltyProgram = (store: string) => {
-    setPreferences(prev => {
-      const { [store]: _, ...remainingPrograms } = prev.loyalty_programs;
-      return {
-        ...prev,
-        loyalty_programs: remainingPrograms
-      };
-    });
+    if (!preferences) return;
+    
+    const updatedPrograms = { ...preferences.loyalty_programs };
+    delete updatedPrograms[store];
+    
+    savePreferences({ loyalty_programs: updatedPrograms });
     toast.success("Loyalty program removed");
   };
 
   const toggleLabel = (label: string) => {
-    setPreferences(prev => {
-      const labels = prev.preferred_product_labels;
-      return {
-        ...prev,
-        preferred_product_labels: labels.includes(label)
-          ? labels.filter(l => l !== label)
-          : [...labels, label]
-      };
-    });
+    if (!preferences) return;
+    
+    const currentLabels = preferences.preferred_product_labels;
+    const updatedLabels = currentLabels.includes(label)
+      ? currentLabels.filter(l => l !== label)
+      : [...currentLabels, label];
+    
+    savePreferences({ preferred_product_labels: updatedLabels });
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
-  if (!user) {
+  if (!user || !preferences) {
     return null;
   }
 
@@ -173,7 +206,7 @@ const Profile = () => {
                 onChange={(e) => setNewStore(e.target.value)}
                 list="store-suggestions"
               />
-              <Button onClick={addStore}>
+              <Button onClick={addStore} disabled={isSaving}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -221,7 +254,7 @@ const Profile = () => {
                 value={newLoyaltyProgram}
                 onChange={(e) => setNewLoyaltyProgram(e.target.value)}
               />
-              <Button onClick={addLoyaltyProgram}>
+              <Button onClick={addLoyaltyProgram} disabled={isSaving}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -237,6 +270,7 @@ const Profile = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeLoyaltyProgram(store)}
+                    disabled={isSaving}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -252,23 +286,18 @@ const Profile = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {Object.entries(labelCategories).map(([category, labels]) => (
-                <div key={category}>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">{category}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {labels.map(label => (
-                      <Badge
-                        key={label}
-                        variant={preferences.preferred_product_labels.includes(label) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => toggleLabel(label)}
-                      >
-                        {label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {commonLabels.map(label => (
+                  <Badge
+                    key={label}
+                    variant={preferences.preferred_product_labels.includes(label) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => toggleLabel(label)}
+                  >
+                    {label}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>

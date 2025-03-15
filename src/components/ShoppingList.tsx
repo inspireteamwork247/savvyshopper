@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Route, ShoppingCart, Copy, Save, Share2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,6 @@ interface ShoppingItem {
   name: string;
   quantity: string;
   labels: string[];
-  brand?: string;
 }
 
 interface SavedList {
@@ -92,7 +92,6 @@ const ShareDialog = ({ onShare }: ShareDialogProps) => {
 
 export const ShoppingList = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [userZipCode, setUserZipCode] = useState('');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [savedLists, setSavedLists] = useState<SavedList[]>(() => {
     const saved = localStorage.getItem('savedShoppingLists');
@@ -116,20 +115,18 @@ export const ShoppingList = () => {
         },
         (error) => {
           console.error('Error getting location:', error);
-          toast.error('Unable to get your location. Please enter your ZIP code.');
         }
       );
     }
   }, []);
 
   const { data: recommendations, refetch: fetchRecommendations, isLoading } = useQuery({
-    queryKey: ['storeRecommendations', items, userZipCode, userLocation],
+    queryKey: ['storeRecommendations', items, userLocation],
     queryFn: async () => {
-      if (items.length === 0 || !userZipCode || !userLocation) return null;
+      if (items.length === 0 || !userLocation) return null;
       
       const request = {
-        products: items.map(item => `${item.name} ${item.quantity}${item.brand ? ` ${item.brand}` : ''}`),
-        zip_code: userZipCode,
+        products: items.map(item => `${item.name} ${item.quantity}`),
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
         labels: items.flatMap(item => item.labels),
@@ -140,13 +137,12 @@ export const ShoppingList = () => {
     enabled: false,
   });
 
-  const addItem = (itemName: string, quantity: string, labels: string[], brand?: string) => {
+  const addItem = (itemName: string, quantity: string, labels: string[]) => {
     const item: ShoppingItem = {
       id: Date.now().toString(),
       name: itemName.toLowerCase(),
       quantity,
       labels,
-      brand,
     };
     setItems([...items, item]);
     toast.success("Item added to list");
@@ -163,8 +159,8 @@ export const ShoppingList = () => {
       return;
     }
 
-    if (!userZipCode) {
-      toast.error("Please enter your ZIP code first");
+    if (!userLocation) {
+      toast.error("Unable to get your location");
       return;
     }
 
@@ -329,16 +325,6 @@ export const ShoppingList = () => {
         </div>
       )}
 
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Enter your ZIP code"
-          value={userZipCode}
-          onChange={(e) => setUserZipCode(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-
       <AddItemForm onAddItem={addItem} />
       <ItemsList items={items} onRemoveItem={removeItem} />
 
@@ -347,7 +333,7 @@ export const ShoppingList = () => {
           onClick={optimizeTrip}
           className="w-full mb-4"
           variant="outline"
-          disabled={isLoading || !userZipCode}
+          disabled={isLoading || !userLocation}
         >
           <Route className="w-4 h-4 mr-2" />
           {isLoading ? 'Loading recommendations...' : 'Optimize Shopping Trip'}

@@ -8,7 +8,6 @@ interface ShoppingItem {
   name: string;
   quantity: string;
   labels: string[];
-  brand?: string;
 }
 
 interface ItemsListProps {
@@ -27,11 +26,6 @@ export const ItemsList = ({ items, onRemoveItem }: ItemsListProps) => {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span>{item.name}</span>
-              {item.brand && (
-                <Badge variant="outline" className="text-xs">
-                  {item.brand}
-                </Badge>
-              )}
               <Badge variant="outline">{item.quantity}</Badge>
             </div>
             {item.labels.length > 0 && (
