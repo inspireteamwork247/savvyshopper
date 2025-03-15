@@ -1,13 +1,19 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
+import { apiRequest } from "@/services/apiClient";
+
+// Define types for user and auth context
+interface User {
+  id: string;
+  email: string;
+}
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
 }
 
+// Create the auth context with default values
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
@@ -18,19 +24,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check if user is authenticated on mount
+    const checkAuthStatus = async () => {
+      try {
+        // Get session from localStorage
+        const token = localStorage.getItem('auth_token');
+        
+        if (token) {
+          // Validate token with the Java API
+          const userData = await apiRequest<User>(
+            'auth/validate', 
+            'GET',
+            undefined,
+            { requiresAuth: true }
+          );
+          
+          setUser(userData);
+        }
+      } catch (error) {
+        // Clear invalid token
+        console.error('Authentication error:', error);
+        localStorage.removeItem('auth_token');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Listen for changes on auth state (sign in, sign out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkAuthStatus();
   }, []);
 
   return (

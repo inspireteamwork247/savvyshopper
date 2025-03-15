@@ -1,6 +1,5 @@
 
 import { API_CONFIG } from '@/config/api';
-import { supabase } from '@/lib/supabase';
 
 interface ApiOptions {
   requiresAuth?: boolean;
@@ -28,9 +27,11 @@ export async function apiRequest<T>(
   };
 
   if (requiresAuth) {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) {
-      headers['Authorization'] = `Bearer ${data.session.access_token}`;
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      throw new Error('Authentication required');
     }
   }
 

@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Save } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { logoutUser } from "@/services/authApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserPreferences, updateUserPreferences, UserPreferences } from "@/services/userPreferencesApi";
 
@@ -57,12 +57,14 @@ const Profile = () => {
     queryKey: ['userPreferences'],
     queryFn: getUserPreferences,
     enabled: !!user,
-    onSuccess: (data) => {
-      console.log('Preferences loaded successfully:', data);
-    },
-    onError: (error: Error) => {
-      console.error('Error fetching preferences:', error);
-      toast.error("Failed to load your preferences");
+    meta: {
+      onSuccess: (data: UserPreferences) => {
+        console.log('Preferences loaded successfully:', data);
+      },
+      onError: (error: Error) => {
+        console.error('Error fetching preferences:', error);
+        toast.error("Failed to load your preferences");
+      }
     }
   });
 
@@ -185,8 +187,7 @@ const Profile = () => {
           <h1 className="text-3xl font-bold text-gray-900">Shopping Preferences</h1>
           <Button variant="destructive" onClick={async () => {
             try {
-              const { error } = await supabase.auth.signOut();
-              if (error) throw error;
+              await logoutUser();
               navigate("/auth");
               toast.success("Successfully logged out!");
             } catch (error: any) {

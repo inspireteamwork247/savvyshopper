@@ -1,6 +1,5 @@
 
 import { apiRequest } from './apiClient';
-import { supabase } from '@/lib/supabase';
 
 interface AuthResponse {
   token: string;
@@ -18,21 +17,17 @@ interface AuthCredentials {
 // Register a new user
 export const registerUser = async (credentials: AuthCredentials): Promise<AuthResponse> => {
   try {
-    // First register with our Java API
-    const apiResponse = await apiRequest<AuthResponse>(
+    const response = await apiRequest<AuthResponse>(
       'auth/register',
       'POST',
       credentials,
       { requiresAuth: false }
     );
     
-    // Then sign up with Supabase for client-side auth
-    await supabase.auth.signUp({
-      email: credentials.email,
-      password: credentials.password,
-    });
+    // Store the auth token
+    localStorage.setItem('auth_token', response.token);
     
-    return apiResponse;
+    return response;
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
@@ -42,21 +37,17 @@ export const registerUser = async (credentials: AuthCredentials): Promise<AuthRe
 // Login user
 export const loginUser = async (credentials: AuthCredentials): Promise<AuthResponse> => {
   try {
-    // First login with our Java API
-    const apiResponse = await apiRequest<AuthResponse>(
+    const response = await apiRequest<AuthResponse>(
       'auth/login',
       'POST',
       credentials,
       { requiresAuth: false }
     );
     
-    // Then sign in with Supabase for client-side auth
-    await supabase.auth.signInWithPassword({
-      email: credentials.email,
-      password: credentials.password,
-    });
+    // Store the auth token
+    localStorage.setItem('auth_token', response.token);
     
-    return apiResponse;
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -66,13 +57,12 @@ export const loginUser = async (credentials: AuthCredentials): Promise<AuthRespo
 // Logout user
 export const logoutUser = async (): Promise<void> => {
   try {
-    // Logout from our Java API
+    // Call the logout endpoint
     await apiRequest<void>('auth/logout', 'POST');
-    
-    // Then sign out from Supabase
-    await supabase.auth.signOut();
   } catch (error) {
     console.error('Logout error:', error);
-    throw error;
+  } finally {
+    // Always clear the token regardless of API response
+    localStorage.removeItem('auth_token');
   }
 };

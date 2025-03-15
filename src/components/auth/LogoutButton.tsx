@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { logoutUser } from "@/services/authApi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -9,8 +9,7 @@ export const LogoutButton = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await logoutUser();
       navigate("/auth");
       toast.success("Successfully logged out!");
     } catch (error: any) {
