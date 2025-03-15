@@ -57,7 +57,10 @@ const Profile = () => {
     queryKey: ['userPreferences'],
     queryFn: getUserPreferences,
     enabled: !!user,
-    onError: (error) => {
+    onSuccess: (data) => {
+      console.log('Preferences loaded successfully:', data);
+    },
+    onError: (error: Error) => {
       console.error('Error fetching preferences:', error);
       toast.error("Failed to load your preferences");
     }
