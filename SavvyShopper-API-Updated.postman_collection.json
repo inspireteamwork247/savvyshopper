@@ -1,0 +1,560 @@
+
+{
+  "info": {
+    "_postman_id": "e5a9f2f8-3b1c-4c0e-9e6b-182f8d0d9e32",
+    "name": "SavvyShopper-API",
+    "description": "API collection for SavvyShopper Java backend integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Preferences",
+      "item": [
+        {
+          "name": "Get User Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["user", "preferences"]
+            },
+            "description": "Retrieves the user's shopping preferences"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferred_stores\": [\"Kroger\", \"Walmart\", \"Target\"],\n  \"loyalty_programs\": {\n    \"Kroger\": \"kroger_card_123\",\n    \"Target\": \"target_redcard_456\"\n  },\n  \"preferred_product_labels\": [\"Organic\", \"Gluten-Free\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["user", "preferences"]
+            },
+            "description": "Updates the user's shopping preferences"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Preferred Stores",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferred_stores\": [\"Kroger\", \"Walmart\", \"Target\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/preferences/stores",
+              "host": ["{{base_url}}"],
+              "path": ["user", "preferences", "stores"]
+            },
+            "description": "Updates the user's preferred stores"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Loyalty Programs",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loyalty_programs\": {\n    \"Kroger\": \"kroger_card_123\",\n    \"Target\": \"target_redcard_456\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/preferences/loyalty",
+              "host": ["{{base_url}}"],
+              "path": ["user", "preferences", "loyalty"]
+            },
+            "description": "Updates the user's loyalty program memberships"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Preferred Labels",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferred_product_labels\": [\"Organic\", \"Gluten-Free\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/preferences/labels",
+              "host": ["{{base_url}}"],
+              "path": ["user", "preferences", "labels"]
+            },
+            "description": "Updates the user's preferred product labels"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Shopping Lists",
+      "item": [
+        {
+          "name": "Get User Shopping Lists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/shopping-lists",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists"]
+            },
+            "description": "Retrieves all shopping lists for the user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shopping List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}"]
+            },
+            "description": "Retrieves a specific shopping list by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Shopping List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weekly Groceries\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shopping-lists",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists"]
+            },
+            "description": "Creates a new shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Shopping List",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{list_id}}\",\n  \"name\": \"Updated Grocery List\",\n  \"items\": [\n    {\n      \"id\": \"item1\",\n      \"name\": \"Milk\",\n      \"quantity\": \"1\",\n      \"labels\": [\"Organic\"]\n    },\n    {\n      \"id\": \"item2\",\n      \"name\": \"Bread\",\n      \"quantity\": \"2\",\n      \"labels\": [\"Whole Grain\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}"]
+            },
+            "description": "Updates an existing shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Shopping List",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}"]
+            },
+            "description": "Deletes a shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Share Shopping List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"friend@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}/share",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}", "share"]
+            },
+            "description": "Shares a shopping list with another user"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item To List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Apples\",\n  \"quantity\": \"5\",\n  \"labels\": [\"Organic\"],\n  \"brand\": \"Honeycrisp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}/items",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}", "items"]
+            },
+            "description": "Adds an item to a shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Item From List",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/shopping-lists/{{list_id}}/items/{{item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["shopping-lists", "{{list_id}}", "items", "{{item_id}}"]
+            },
+            "description": "Removes an item from a shopping list"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "Get Store Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"products\": [\"Milk 1L\", \"Bread\", \"Eggs\"],\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194,\n  \"labels\": [\"Organic\", \"Gluten-Free\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/recommendations/best-stores",
+              "host": ["{{base_url}}"],
+              "path": ["recommendations", "best-stores"]
+            },
+            "description": "Get store recommendations based on the shopping list"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "savvyshopper",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/suggestions?query=mil",
+              "host": ["{{base_url}}"],
+              "path": ["products", "suggestions"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "mil"
+                }
+              ]
+            },
+            "description": "Get product suggestions based on user input"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api/v1/savvyshopper",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your-auth-token-here",
+      "type": "string"
+    },
+    {
+      "key": "list_id",
+      "value": "example-list-id",
+      "type": "string"
+    },
+    {
+      "key": "item_id",
+      "value": "example-item-id",
+      "type": "string"
+    }
+  ]
+}

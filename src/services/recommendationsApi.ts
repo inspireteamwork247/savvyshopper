@@ -7,12 +7,13 @@ interface StoreRecommendation {
   distance_meters: number;
 }
 
-interface RecommendationRequest {
+export interface RecommendationRequest {
   products: string[];
-  zip_code: string;
   latitude: number;
   longitude: number;
   labels: string[];
+  // zip_code is optional now
+  zip_code?: string;
 }
 
 export const getStoreRecommendations = async (request: RecommendationRequest): Promise<StoreRecommendation[]> => {
@@ -25,5 +26,20 @@ export const getStoreRecommendations = async (request: RecommendationRequest): P
   } catch (error) {
     console.error('Error fetching store recommendations:', error);
     throw error;
+  }
+};
+
+// New function to get product suggestions from the API
+export const getProductSuggestions = async (query: string): Promise<string[]> => {
+  try {
+    if (!query.trim()) return [];
+    
+    return await apiRequest<string[]>(
+      `products/suggestions?query=${encodeURIComponent(query)}`,
+      'GET'
+    );
+  } catch (error) {
+    console.error('Error fetching product suggestions:', error);
+    return []; // Return empty array on error to avoid breaking the UI
   }
 };

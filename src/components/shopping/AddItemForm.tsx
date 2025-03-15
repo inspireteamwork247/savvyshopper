@@ -8,7 +8,8 @@ import { ItemSuggestions } from './ItemSuggestions';
 import { LabelSelect } from './LabelSelect';
 import { BarcodeScanner } from './BarcodeScanner';
 import { VoiceInput } from './VoiceInput';
-import { commonItems } from './constants';
+import { getProductSuggestions } from '@/services/recommendationsApi';
+import { useQuery } from '@tanstack/react-query';
 
 interface AddItemFormProps {
   onAddItem: (itemName: string, quantity: string, labels: string[]) => void;
@@ -20,7 +21,32 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Setup debouncing for API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(newItem);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [newItem]);
+
+  // Fetch suggestions from API when search term changes
+  const { data: apiSuggestions } = useQuery({
+    queryKey: ['productSuggestions', debouncedSearchTerm],
+    queryFn: () => getProductSuggestions(debouncedSearchTerm),
+    enabled: !!debouncedSearchTerm && debouncedSearchTerm.length >= 2,
+  });
+
+  // Update suggestions from API
+  useEffect(() => {
+    if (apiSuggestions && apiSuggestions.length > 0) {
+      setSuggestions(apiSuggestions);
+      setShowSuggestions(true);
+    }
+  }, [apiSuggestions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,13 +63,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     const value = e.target.value;
     setNewItem(value);
 
-    if (value.trim()) {
-      const filtered = commonItems.filter(item =>
-        item.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
-      setShowSuggestions(true);
-    } else {
+    if (!value.trim()) {
       setSuggestions([]);
       setShowSuggestions(false);
     }
