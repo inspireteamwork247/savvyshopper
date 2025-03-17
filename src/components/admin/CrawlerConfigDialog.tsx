@@ -25,7 +25,8 @@ import {
   createCrawlerConfig, 
   updateCrawlerConfig, 
   generateSelectorSchemaLocal, 
-  generateSampleProduct 
+  generateSampleProduct,
+  validateSelectorSchema
 } from '@/services/crawlerConfigApi';
 
 interface CrawlerConfigDialogProps {
