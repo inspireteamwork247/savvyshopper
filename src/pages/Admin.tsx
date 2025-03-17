@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Retailer } from "@/types/admin";
+import { CrawlerConfig, Retailer } from "@/types/admin";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Search, RefreshCw, Grid, List, Play } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, RefreshCw, Grid, List, Play, FileCode, Eye } from "lucide-react";
 import RetailerDialog from "@/components/admin/RetailerDialog";
 import StoreDialog from "@/components/admin/StoreDialog";
 import StoreBranchDialog from "@/components/admin/StoreBranchDialog";
@@ -35,6 +35,10 @@ import { getStores, deleteStore } from "@/services/storeApi";
 import { getBranches, deleteBranch } from "@/services/branchApi";
 import { getTasks, deleteTask, runTask } from "@/services/taskApi";
 import { getDashboardStats } from "@/services/dashboardApi";
+import CrawlerConfigDialog from "@/components/admin/CrawlerConfigDialog";
+import CrawlerConfigTableView from "@/components/admin/CrawlerConfigTableView";
+import CrawlerConfigDetailsDialog from "@/components/admin/CrawlerConfigDetailsDialog";
+import { getCrawlerConfigs, deleteCrawlerConfig } from "@/services/crawlerConfigApi";
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -46,12 +50,14 @@ export default function Admin() {
   const [stores, setStores] = useState<Store[]>([]);
   const [branches, setBranches] = useState<StoreBranch[]>([]);
   const [tasks, setTasks] = useState<CrawlerTask[]>([]);
+  const [crawlerConfigs, setCrawlerConfigs] = useState<CrawlerConfig[]>([]);
   
   // Selected item states
   const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(null);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<StoreBranch | null>(null);
   const [selectedTask, setSelectedTask] = useState<CrawlerTask | null>(null);
+  const [selectedConfig, setSelectedConfig] = useState<CrawlerConfig | null>(null);
   
   // Dialog open states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,6 +65,8 @@ export default function Admin() {
   const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isTaskDetailsOpen, setIsTaskDetailsOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isConfigDetailsOpen, setIsConfigDetailsOpen] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +77,7 @@ export default function Admin() {
   const [storeFilter, setStoreFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [taskFilter, setTaskFilter] = useState("");
+  const [configFilter, setConfigFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
@@ -89,6 +98,7 @@ export default function Admin() {
   const [isStoresLoading, setIsStoresLoading] = useState(false);
   const [isBranchesLoading, setIsBranchesLoading] = useState(false);
   const [isTasksLoading, setIsTasksLoading] = useState(false);
+  const [isConfigsLoading, setIsConfigsLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -102,6 +112,7 @@ export default function Admin() {
       fetchStores();
       fetchBranches();
       fetchTasks();
+      fetchCrawlerConfigs();
     }
   }, [user]);
   
@@ -159,6 +170,18 @@ export default function Admin() {
       setIsTasksLoading(false);
     }
   };
+  
+  const fetchCrawlerConfigs = async () => {
+    try {
+      setIsConfigsLoading(true);
+      const data = await getCrawlerConfigs();
+      setCrawlerConfigs(data);
+    } catch (error: any) {
+      toast.error('Failed to fetch crawler configurations: ' + error.message);
+    } finally {
+      setIsConfigsLoading(false);
+    }
+  };
 
   const handleDeleteRetailer = async (id: string) => {
     try {
@@ -197,6 +220,16 @@ export default function Admin() {
       toast.success('Task deleted successfully');
     } catch (error: any) {
       toast.error('Failed to delete task: ' + error.message);
+    }
+  };
+  
+  const handleDeleteCrawlerConfig = async (id: string) => {
+    try {
+      await deleteCrawlerConfig(id);
+      setCrawlerConfigs(crawlerConfigs.filter(c => c.id !== id));
+      toast.success('Crawler configuration deleted successfully');
+    } catch (error: any) {
+      toast.error('Failed to delete crawler configuration: ' + error.message);
     }
   };
   
@@ -295,6 +328,15 @@ export default function Admin() {
       const store = stores.find(s => s.id === task.store_id);
       return store?.retailer_id === retailerIdFromUrl;
     });
+    
+  const filteredConfigs = crawlerConfigs
+    .filter(config => configFilter === "" || 
+      config.name.toLowerCase().includes(configFilter.toLowerCase()) ||
+      config.crawler_type.toLowerCase().includes(configFilter.toLowerCase()) ||
+      config.retailer_name.toLowerCase().includes(configFilter.toLowerCase())
+    )
+    .filter(config => !storeIdFromUrl || config.store_id === storeIdFromUrl)
+    .filter(config => !retailerIdFromUrl || config.retailer_id === retailerIdFromUrl);
 
   const paginateData = <T,>(data: T[], page: number, itemsPerPage: number) => {
     const startIndex = (page - 1) * itemsPerPage;
@@ -305,6 +347,7 @@ export default function Admin() {
   const paginatedStores = paginateData(filteredStores, currentPage, itemsPerPage);
   const paginatedBranches = paginateData(filteredBranches, currentPage, itemsPerPage);
   const paginatedTasks = paginateData(filteredTasks, currentPage, itemsPerPage);
+  const paginatedConfigs = paginateData(filteredConfigs, currentPage, itemsPerPage);
 
   const pageCount = (dataLength: number) => Math.ceil(dataLength / itemsPerPage);
   
@@ -401,6 +444,7 @@ export default function Admin() {
           <TabsTrigger value="stores">Stores</TabsTrigger>
           <TabsTrigger value="branches">Store Branches</TabsTrigger>
           <TabsTrigger value="tasks">Crawler Tasks</TabsTrigger>
+          <TabsTrigger value="configs">Crawler Configs</TabsTrigger>
         </TabsList>
 
         {showLocationFilters && (
@@ -949,6 +993,134 @@ export default function Admin() {
 
           {renderPagination(filteredTasks.length)}
         </TabsContent>
+        
+        <TabsContent value="configs" className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter configurations..."
+                className="pl-8"
+                value={configFilter}
+                onChange={(e) => {
+                  setConfigFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchCrawlerConfigs}
+                disabled={isConfigsLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${isConfigsLoading ? "animate-spin" : ""}`} />
+              </Button>
+              <Button
+                onClick={() => {
+                  setSelectedConfig(null);
+                  setIsConfigDialogOpen(true);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Configuration
+              </Button>
+            </div>
+          </div>
+
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedConfigs.map((config) => (
+                <Card key={config.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex justify-between items-center">
+                      <span className="truncate">{config.name}</span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedConfig(config);
+                            setIsConfigDetailsOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedConfig(config);
+                            setIsConfigDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDeleteCrawlerConfig(config.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Type:</span>
+                        <span>{config.crawler_type}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Retailer:</span>
+                        <span>{retailers.find(r => r.id === config.retailer_id)?.name || config.retailer_name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Store:</span>
+                        <span>{stores.find(s => s.id === config.store_id)?.store_name || 'Unknown'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Frequency:</span>
+                        <span>{config.frequency}</span>
+                      </div>
+                      {config.last_run && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Last Run:</span>
+                          <span>{new Date(config.last_run).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {config.product_css_selector_schema && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Fields:</span>
+                          <span>{config.product_css_selector_schema.fields.length} configured</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <CrawlerConfigTableView
+              configs={paginatedConfigs}
+              retailers={retailers}
+              stores={stores}
+              onEditConfig={(config) => {
+                setSelectedConfig(config);
+                setIsConfigDialogOpen(true);
+              }}
+              onDeleteConfig={handleDeleteCrawlerConfig}
+              onViewDetails={(config) => {
+                setSelectedConfig(config);
+                setIsConfigDetailsOpen(true);
+              }}
+            />
+          )}
+
+          {renderPagination(filteredConfigs.length)}
+        </TabsContent>
       </Tabs>
 
       <RetailerDialog
@@ -998,6 +1170,26 @@ export default function Admin() {
         open={isTaskDetailsOpen}
         onOpenChange={setIsTaskDetailsOpen}
         task={selectedTask}
+        stores={stores}
+      />
+      
+      <CrawlerConfigDialog
+        open={isConfigDialogOpen}
+        onOpenChange={setIsConfigDialogOpen}
+        config={selectedConfig}
+        retailers={retailers}
+        stores={stores}
+        onSubmit={() => {
+          setIsConfigDialogOpen(false);
+          fetchCrawlerConfigs();
+        }}
+      />
+      
+      <CrawlerConfigDetailsDialog
+        open={isConfigDetailsOpen}
+        onOpenChange={setIsConfigDetailsOpen}
+        config={selectedConfig}
+        retailers={retailers}
         stores={stores}
       />
     </div>

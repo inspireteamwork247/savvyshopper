@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
+  React.HTMLTableAttributes
 >(({ className, ...props }, ref) => (
   <div className="relative w-full overflow-auto">
     <table
@@ -19,7 +19,7 @@ Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  React.HTMLTableSectionAttributes
 >(({ className, ...props }, ref) => (
   <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
 ))
@@ -27,7 +27,7 @@ TableHeader.displayName = "TableHeader"
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  React.HTMLTableSectionAttributes
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
@@ -39,11 +39,14 @@ TableBody.displayName = "TableBody"
 
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  React.HTMLTableSectionAttributes
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn("bg-primary font-medium text-primary-foreground", className)}
+    className={cn(
+      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      className
+    )}
     {...props}
   />
 ))
@@ -51,7 +54,7 @@ TableFooter.displayName = "TableFooter"
 
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
+  React.HTMLTableRowAttributes
 >(({ className, ...props }, ref) => (
   <tr
     ref={ref}
